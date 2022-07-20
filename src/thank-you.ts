@@ -8,12 +8,10 @@ window.addEventListener("load", async () => {
 
     if (member.loggedIn) {
       if (tokenObj)
-        window.location.href = `https://tweetnest.webflow.io/member/${member.id}`;
+        window.location.href = `https://tweetnest.io/member/${member.id}`;
       else {
         // getting auth url
-        const req = await fetch(
-          "https://tweetnet-backend.herokuapp.com/api/auth/authorize"
-        );
+        const req = await fetch("https://api.tweetnest.io/api/auth/authorize");
 
         type AuthUrlResponse = {
           status: boolean;

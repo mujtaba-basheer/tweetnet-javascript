@@ -15,7 +15,7 @@ var MemberStack: IMemberStack =
   (window.MemberStack as IMemberStack) || ({} as IMemberStack);
 
 {
-  fetch("https://tweetnet-backend.herokuapp.com/api/").then((res) =>
+  fetch("https://api.tweetnest.io/api/").then((res) =>
     res.text().then(console.log).catch(console.error)
   );
 }
@@ -53,11 +53,11 @@ window.addEventListener("load", () => {
         if (member.loggedIn) {
           // checking if token exists
           if (tokenObj)
-            window.location.href = `https://tweetnest.webflow.io/member/${member.id}`;
+            window.location.href = `https://tweetnest.io/member/${member.id}`;
           else {
             // getting auth url
             const req = await fetch(
-              "https://tweetnet-backend.herokuapp.com/api/auth/authorize"
+              "https://api.tweetnest.io/api/auth/authorize"
             );
 
             type AuthUrlResponse = {

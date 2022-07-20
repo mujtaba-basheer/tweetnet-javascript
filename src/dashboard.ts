@@ -67,7 +67,7 @@ class ApiCall implements IApiCall {
       this.tokenObj = tokenObj;
       this.baseUrl = development
         ? "http://127.0.0.1:5000/api"
-        : "https://tweetnet-backend.herokuapp.com/api";
+        : "https://api.tweetnest.io/api";
 
       MemberStack.onReady.then((member) => {
         if (!member.loggedIn) window.location.pathname = "/";
