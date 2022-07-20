@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "target": "ES2017",
+    "module": "CommonJS",
+    "skipLibCheck": true,
+    "moduleResolution": "Node",
+    "newLine": "lf",
+    "lib": ["DOM"]
+  },
+  "include": ["src/*"],
+  "exclude": ["node_modules"]
+}
