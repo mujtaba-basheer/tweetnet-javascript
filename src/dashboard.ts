@@ -446,21 +446,14 @@ window.addEventListener("load", async () => {
                       spanEl.classList.add("w-form-label");
                       spanEl.classList.add("universal-label-like");
                       spanEl.setAttribute("for", "Loike-Checkbox-2");
-                      spanEl.textContent = "Like";
+                      spanEl.textContent = "Liked";
 
                       likeLabel.appendChild(iconDiv);
                       likeLabel.appendChild(inputEl);
                       likeLabel.appendChild(spanEl);
                     }
 
-                    const likeError = document.createElement("div");
-                    likeError.classList.add("universal-error-like");
-                    likeError.classList.add("hide");
-                    likeError.textContent =
-                      "You've exceeded amount of tweets to be liked";
-
                     likeContainer.appendChild(likeLabel);
-                    likeContainer.appendChild(likeError);
                   }
 
                   const replyContainer = document.createElement("div");
@@ -489,21 +482,14 @@ window.addEventListener("load", async () => {
                       spanEl.classList.add("w-form-label");
                       spanEl.classList.add("universal-label-comment");
                       spanEl.setAttribute("for", "Comment-Checkbox-2");
-                      spanEl.textContent = "Reply";
+                      spanEl.textContent = "Commented";
 
                       replyLabel.appendChild(iconDiv);
                       replyLabel.appendChild(inputEl);
                       replyLabel.appendChild(spanEl);
                     }
 
-                    const replyError = document.createElement("div");
-                    replyError.classList.add("universal-error-comment");
-                    replyError.classList.add("hide");
-                    replyError.textContent =
-                      "You've exceeded amount of tweets to be commented";
-
                     replyContainer.appendChild(replyLabel);
-                    replyContainer.appendChild(replyError);
                   }
 
                   const retweetContainer = document.createElement("div");
@@ -532,27 +518,38 @@ window.addEventListener("load", async () => {
                       spanEl.classList.add("w-form-label");
                       spanEl.classList.add("universal-label-retweet");
                       spanEl.setAttribute("for", "Retweet-Checkbox-2");
-                      spanEl.textContent = "Share";
+                      spanEl.textContent = "Retweeted";
 
                       retweetLabel.appendChild(iconDiv);
                       retweetLabel.appendChild(inputEl);
                       retweetLabel.appendChild(spanEl);
                     }
 
-                    const retweetError = document.createElement("div");
-                    retweetError.classList.add("universal-error-retweet");
-                    retweetError.classList.add("hide");
-                    retweetError.textContent =
-                      "You've exceeded amount of tweets to be retweeted";
-
                     retweetContainer.appendChild(retweetLabel);
-                    retweetContainer.appendChild(retweetError);
                   }
 
                   checkboxesContainer.appendChild(likeContainer);
                   checkboxesContainer.appendChild(replyContainer);
                   checkboxesContainer.appendChild(retweetContainer);
                 }
+
+                const likeError = document.createElement("div");
+                likeError.classList.add("universal-error-like");
+                likeError.classList.add("hide");
+                likeError.textContent =
+                  "You've exceeded amount of tweets to be liked";
+
+                const replyError = document.createElement("div");
+                replyError.classList.add("universal-error-comment");
+                replyError.classList.add("hide");
+                replyError.textContent =
+                  "You've exceeded amount of tweets to be commented";
+
+                const retweetError = document.createElement("div");
+                retweetError.classList.add("universal-error-retweet");
+                retweetError.classList.add("hide");
+                retweetError.textContent =
+                  "You've exceeded amount of tweets to be retweeted";
 
                 const submitBtn = document.createElement("input");
                 submitBtn.classList.add("submit-button");
@@ -569,6 +566,9 @@ window.addEventListener("load", async () => {
 
                 bottomDiv.appendChild(disclaimnerEl);
                 bottomDiv.appendChild(checkboxesContainer);
+                bottomDiv.appendChild(likeError);
+                bottomDiv.appendChild(replyError);
+                bottomDiv.appendChild(retweetError);
                 bottomDiv.appendChild(submitBtn);
                 bottomDiv.appendChild(successEl);
               }
@@ -635,6 +635,7 @@ window.addEventListener("load", async () => {
                   const msgEl = formEl.querySelector(`.${msgMap[x.tag]}`);
                   if (msgEl && !x.status) {
                     msgEl.classList.remove("hide");
+                    setTimeout(() => msgEl.classList.add("hide"), 5000);
                     flag = false;
                   }
                   formEl
@@ -1403,7 +1404,7 @@ window.addEventListener("load", async () => {
 
                       const labelText = document.createElement("div");
                       labelText.classList.add("checkbox-label-card");
-                      labelText.textContent = "Reply";
+                      labelText.textContent = "Comment";
 
                       replyLabel.appendChild(iconDiv);
                       replyLabel.appendChild(labelText);

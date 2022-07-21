@@ -11,7 +11,7 @@ window.addEventListener("load", async () => {
     if (member.loggedIn && state && code) {
       const mid = member.id;
 
-      const req = await fetch("api.tweetnest.io/api/auth/token", {
+      const req = await fetch("https://api.tweetnest.io/api/auth/token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
