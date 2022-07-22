@@ -227,10 +227,12 @@ window.addEventListener("load", async () => {
           profile_image_url: string;
         };
         tweets: TweetObj[];
+        limit_exceeded: boolean;
       };
-      const { author_details, tweets } = await apiCall.getReq<MyTweetsRespData>(
-        "/user/my-tweets"
-      );
+      const { author_details, tweets, limit_exceeded } =
+        await apiCall.getReq<MyTweetsRespData>("/user/my-tweets");
+
+      if (limit_exceeded) handleResponse("your", true);
 
       const containerEl = document.getElementById("your-tweets-swiper");
 
@@ -618,10 +620,13 @@ window.addEventListener("load", async () => {
 
               try {
                 type ForwardTweetsRespData = {
-                  tag: string;
-                  status: boolean;
-                  message: string;
-                }[];
+                  messages: {
+                    tag: string;
+                    status: boolean;
+                    message: string;
+                  }[];
+                  limit_exceeded: boolean;
+                };
                 const resp = await apiCall.postReq<ForwardTweetsRespData>(
                   "/user/forward-tweets",
                   {
@@ -629,9 +634,10 @@ window.addEventListener("load", async () => {
                     tasks,
                   }
                 );
+                const { messages, limit_exceeded } = resp;
 
                 let flag = true;
-                resp.forEach((x) => {
+                messages.forEach((x) => {
                   const msgEl = formEl.querySelector(`.${msgMap[x.tag]}`);
                   if (msgEl && !x.status) {
                     msgEl.classList.remove("hide");
@@ -648,6 +654,9 @@ window.addEventListener("load", async () => {
                 if (flag) {
                   successEl.classList.remove("hide");
                   setTimeout(() => successEl.classList.add("hide"), 5000);
+                }
+                if (limit_exceeded) {
+                  setTimeout(() => handleResponse("your", true), 5000);
                 }
               } catch (error) {
                 console.error(error);
