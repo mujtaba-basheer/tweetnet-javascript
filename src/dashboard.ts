@@ -66,8 +66,8 @@ class ApiCall implements IApiCall {
     if (tokenObj) {
       this.tokenObj = tokenObj;
       this.baseUrl = development
-        ? "http://127.0.0.1:5000/api"
-        : "https://api.tweetnest.io/api";
+        ? "http://127.0.0.1:5000/apiV1"
+        : "https://api.tweetnest.io/apiV1";
 
       MemberStack.onReady.then((member) => {
         if (!member.loggedIn) window.location.pathname = "/";
@@ -641,22 +641,17 @@ window.addEventListener("load", async () => {
                   const msgEl = formEl.querySelector(`.${msgMap[x.tag]}`);
                   if (msgEl && !x.status) {
                     msgEl.classList.remove("hide");
-                    setTimeout(() => msgEl.classList.add("hide"), 5000);
+                    setTimeout(() => msgEl.classList.add("hide"), 3000);
                     flag = false;
                   }
-                  formEl
-                    .querySelector(`.${msgMap[x.tag]}`)
-                    .previousElementSibling.classList.add(
-                      "disabled-class-universal"
-                    );
                 });
 
                 if (flag) {
                   successEl.classList.remove("hide");
-                  setTimeout(() => successEl.classList.add("hide"), 5000);
+                  setTimeout(() => successEl.classList.add("hide"), 3000);
                 }
                 if (limit_exceeded) {
-                  setTimeout(() => handleResponse("your", true), 5000);
+                  setTimeout(() => handleResponse("your", true), 3000);
                 }
               } catch (error) {
                 console.error(error);
@@ -672,1171 +667,1484 @@ window.addEventListener("load", async () => {
         containerEl.appendChild(rootEl);
       }
 
+      if (tweets.length === 0) {
+        document.getElementById("your-none").style.display = "block";
+        document.getElementById("your-overall").style.display = "none";
+      }
+
       document.getElementById("your-preloader").remove();
     }
 
     // MY TODO
     {
       // fetching tweets to like
+      {
+        try {
+          const { tweets: tweetsToLike, limit_exceeded: limit_exceeded_like } =
+            await apiCall.getReq<GetTweetsResp>("/user/tweets/like");
 
-      const { tweets: tweetsToLike, limit_exceeded: limit_exceeded_like } =
-        await apiCall.getReq<GetTweetsResp>("/user/tweets/like");
+          const likeLoader = $(document.getElementById("like-preloader"));
+          const containerElLike = document.getElementById("like-swiper");
 
-      const likeLoader = $(document.getElementById("like-preloader"));
-      const containerElLike = document.getElementById("like-swiper");
+          if (limit_exceeded_like) handleResponse("like", true);
 
-      if (limit_exceeded_like) handleResponse("like", true);
+          containerElLike
+            .querySelectorAll(".swiper-slide")
+            .forEach((x) => x.remove());
 
-      containerElLike
-        .querySelectorAll(".swiper-slide")
-        .forEach((x) => x.remove());
+          for (let i = 0; i < tweetsToLike.length; i++) {
+            const tweet: TodoTweetObj = tweetsToLike[i];
 
-      for (let i = 0; i < tweetsToLike.length; i++) {
-        const tweet: TodoTweetObj = tweetsToLike[i];
+            const { id: tid, text, created_at, author_details } = tweet;
 
-        const { id: tid, text, created_at, author_details } = tweet;
-
-        // creating tweet element
-        const rootEl = document.createElement("div");
-        rootEl.classList.add("swiper-slide");
-        {
-          const formDiv = document.createElement("div");
-          formDiv.classList.add("form-block-twitter");
-          formDiv.classList.add("w-form");
-          {
-            const formEl = document.createElement("form");
-            formEl.classList.add("form-twitter");
+            // creating tweet element
+            const rootEl = document.createElement("div");
+            rootEl.classList.add("swiper-slide");
             {
-              const boxDiv = document.createElement("div");
-              boxDiv.classList.add("form-card");
+              const formDiv = document.createElement("div");
+              formDiv.classList.add("form-block-twitter");
+              formDiv.classList.add("w-form");
               {
-                const authorDiv = document.createElement("div");
-                authorDiv.classList.add("twitter-author");
+                const formEl = document.createElement("form");
+                formEl.classList.add("form-twitter");
                 {
-                  const profileImg = document.createElement("img");
-                  profileImg.classList.add("twitter-author-image");
-                  profileImg.loading = "lazy";
-                  profileImg.src = author_details.profile_image_url;
-                  profileImg.alt = "";
-
-                  const colDiv = document.createElement("div");
-                  colDiv.classList.add("column");
+                  const boxDiv = document.createElement("div");
+                  boxDiv.classList.add("form-card");
                   {
-                    const nameEl = document.createElement("div");
-                    nameEl.classList.add("name-text");
-                    nameEl.textContent = author_details.name;
-
-                    const handleEl = document.createElement("div");
-                    handleEl.classList.add("handle-text");
-                    handleEl.textContent = `@${author_details.username}`;
-
-                    colDiv.appendChild(nameEl);
-                    colDiv.appendChild(handleEl);
-                  }
-
-                  const iconDiv = document.createElement("img");
-                  iconDiv.classList.add("twitter-icon-image");
-                  iconDiv.sizes = "20px";
-                  iconDiv.loading = "lazy";
-                  iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
-                  iconDiv.src =
-                    "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
-
-                  authorDiv.appendChild(profileImg);
-                  authorDiv.appendChild(colDiv);
-                  authorDiv.appendChild(iconDiv);
-                }
-
-                const postDiv = document.createElement("div");
-                postDiv.classList.add("overflow-block");
-                {
-                  const postEl = document.createElement("p");
-                  postEl.classList.add("post-text");
-                  postEl.textContent = text;
-
-                  const oneImgDiv = document.createElement("div");
-                  oneImgDiv.classList.add("one-scenario-image");
-                  oneImgDiv.classList.add("hide");
-                  {
-                    const imgEl = document.createElement("img");
-                    imgEl.classList.add("cover-image");
-                    imgEl.loading = "lazy";
-                    imgEl.alt = "";
-
-                    oneImgDiv.appendChild(imgEl);
-                  }
-
-                  const twoImgDiv = document.createElement("div");
-                  twoImgDiv.classList.add("two-scenario-image-wrap");
-                  twoImgDiv.classList.add("hide");
-                  twoImgDiv.style.display = "none";
-                  {
-                    const imgDiv1 = document.createElement("div");
-                    imgDiv1.id =
-                      "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
-                    imgDiv1.classList.add("two-scenario-image");
+                    const authorDiv = document.createElement("div");
+                    authorDiv.classList.add("twitter-author");
                     {
-                      const imgEl = document.createElement("img");
-                      imgEl.classList.add("cover-image");
-                      imgEl.loading = "lazy";
-                      imgEl.alt = "";
+                      const profileImg = document.createElement("img");
+                      profileImg.classList.add("twitter-author-image");
+                      profileImg.loading = "lazy";
+                      profileImg.src = author_details.profile_image_url;
+                      profileImg.alt = "";
 
-                      imgDiv1.appendChild(imgEl);
-                    }
-
-                    const imgDiv2 = document.createElement("div");
-                    imgDiv2.id =
-                      "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                    imgDiv2.classList.add("two-scenario-image");
-                    {
-                      const imgEl = document.createElement("img");
-                      imgEl.classList.add("cover-image");
-                      imgEl.loading = "lazy";
-                      imgEl.alt = "";
-
-                      imgDiv2.appendChild(imgEl);
-                    }
-
-                    twoImgDiv.appendChild(imgDiv1);
-                    twoImgDiv.appendChild(imgDiv2);
-                  }
-
-                  const oneVidDiv = document.createElement("div");
-                  oneVidDiv.classList.add("w-video");
-                  oneVidDiv.classList.add("w-embed");
-                  oneVidDiv.classList.add("one-video");
-                  oneVidDiv.classList.add("hide");
-                  oneVidDiv.id =
-                    "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                  {
-                    const videoEl = document.createElement("video");
-                    videoEl.autoplay = false;
-
-                    oneVidDiv.appendChild(videoEl);
-                  }
-
-                  if (tweet.attachement_urls) {
-                    const urls = tweet.attachement_urls;
-                    const n = urls.length;
-                    if (n === 1) {
-                      oneImgDiv.classList.remove("hide");
-                      oneImgDiv.querySelector("img").src = urls[0];
-                    } else if (n == 2) {
-                      twoImgDiv.classList.remove("hide");
-                      twoImgDiv
-                        .querySelectorAll("img")
-                        .forEach((x, i) => (x.src = urls[i]));
-                    }
-                  }
-
-                  postDiv.appendChild(postEl);
-                  postDiv.appendChild(oneImgDiv);
-                  postDiv.appendChild(twoImgDiv);
-                  postDiv.appendChild(oneVidDiv);
-                }
-
-                const dateDiv = document.createElement("div");
-                dateDiv.classList.add("date-text");
-                {
-                  const timeEl = document.createElement("div");
-                  timeEl.classList.add("post-time");
-                  timeEl.textContent = created_at.time;
-
-                  const dotEl = document.createElement("div");
-                  dotEl.classList.add("span-dot");
-                  {
-                    const textEl = document.createTextNode(".");
-                    dotEl.appendChild(textEl);
-                  }
-
-                  const dateEl = document.createElement("div");
-                  dateEl.classList.add("post-date");
-                  dateEl.textContent = created_at.date;
-
-                  dateDiv.appendChild(timeEl);
-                  dateDiv.appendChild(dotEl);
-                  dateDiv.appendChild(dateEl);
-                }
-
-                const checkboxesContainer = document.createElement("div");
-                checkboxesContainer.classList.add("checkboxes-wrapper");
-                {
-                  const likeContainer = document.createElement("div");
-                  likeContainer.classList.add("column");
-                  {
-                    const likeLabel = document.createElement("label");
-                    likeLabel.classList.add("w-checkbox");
-                    likeLabel.classList.add("like-checkbox");
-                    {
-                      const iconDiv = document.createElement("div");
-                      iconDiv.classList.add("w-checkbox-input");
-                      iconDiv.classList.add(
-                        "w-checkbox-input--inputType-custom"
-                      );
-                      iconDiv.classList.add("like-checkbox-check");
-
-                      const inputEl = document.createElement("input");
-                      inputEl.id = "Loike-Checkbox-2";
-                      inputEl.type = "checkbox";
-                      inputEl.setAttribute("data-name", "Loike Checkbox 2");
-                      inputEl.style.position = "absolute";
-                      inputEl.style.opacity = "0";
-                      inputEl.style.zIndex = "-1";
+                      const colDiv = document.createElement("div");
+                      colDiv.classList.add("column");
                       {
-                        inputEl.addEventListener("change", async () => {
-                          if (inputEl.checked) {
-                            try {
-                              const resp = await apiCall.getReq<ActionResponse>(
-                                `/user/like/${tid}`
-                              );
-                              if (resp.limit_exceeded)
-                                handleResponse("like", true);
-                              rootEl.remove();
-                            } catch (error) {
-                              console.error(error);
-                            }
-                          }
-                        });
+                        const nameEl = document.createElement("div");
+                        nameEl.classList.add("name-text");
+                        nameEl.textContent = author_details.name;
+
+                        const handleEl = document.createElement("div");
+                        handleEl.classList.add("handle-text");
+                        handleEl.textContent = `@${author_details.username}`;
+
+                        colDiv.appendChild(nameEl);
+                        colDiv.appendChild(handleEl);
                       }
 
-                      const spanEl = document.createElement("span");
-                      spanEl.classList.add("w-form-label");
-                      spanEl.classList.add("checkbox-label-card");
-                      spanEl.setAttribute("for", "Loike-Checkbox-2");
-                      spanEl.textContent = "Like";
+                      const iconDiv = document.createElement("img");
+                      iconDiv.classList.add("twitter-icon-image");
+                      iconDiv.sizes = "20px";
+                      iconDiv.loading = "lazy";
+                      iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
+                      iconDiv.src =
+                        "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
 
-                      likeLabel.appendChild(iconDiv);
-                      likeLabel.appendChild(inputEl);
-                      likeLabel.appendChild(spanEl);
+                      authorDiv.appendChild(profileImg);
+                      authorDiv.appendChild(colDiv);
+                      authorDiv.appendChild(iconDiv);
                     }
 
-                    const likeError = document.createElement("div");
-                    likeError.classList.add("error-like");
-                    likeError.classList.add("hide");
-                    likeError.textContent =
-                      "You've exceeded amount of tweets to be liked";
-
-                    likeContainer.appendChild(likeLabel);
-                    likeContainer.appendChild(likeError);
-                  }
-
-                  checkboxesContainer.appendChild(likeContainer);
-                }
-
-                boxDiv.appendChild(authorDiv);
-                boxDiv.appendChild(postDiv);
-                boxDiv.appendChild(dateDiv);
-                boxDiv.appendChild(checkboxesContainer);
-              }
-
-              formEl.appendChild(boxDiv);
-            }
-
-            formDiv.appendChild(formEl);
-          }
-
-          rootEl.appendChild(formDiv);
-        }
-
-        containerElLike.appendChild(rootEl);
-      }
-
-      likeLoader.css("display", "none");
-
-      document
-        .querySelector("a.refresh-liked")
-        .addEventListener("click", async () => {
-          try {
-            likeLoader.css("display", "block");
-            const randomArray = shuffle(tweetsToLike.length);
-
-            containerElLike
-              .querySelectorAll(".swiper-slide")
-              .forEach((x) => x.remove());
-
-            for (let i = 0; i < tweetsToLike.length; i++) {
-              const tweet: TodoTweetObj = tweetsToLike[randomArray[i]];
-
-              const { id: tid, text, created_at, author_details } = tweet;
-
-              // creating tweet element
-              const rootEl = document.createElement("div");
-              rootEl.classList.add("swiper-slide");
-              {
-                const formDiv = document.createElement("div");
-                formDiv.classList.add("form-block-twitter");
-                formDiv.classList.add("w-form");
-                {
-                  const formEl = document.createElement("form");
-                  formEl.classList.add("form-twitter");
-                  {
-                    const boxDiv = document.createElement("div");
-                    boxDiv.classList.add("form-card");
+                    const postDiv = document.createElement("div");
+                    postDiv.classList.add("overflow-block");
                     {
-                      const authorDiv = document.createElement("div");
-                      authorDiv.classList.add("twitter-author");
+                      const postEl = document.createElement("p");
+                      postEl.classList.add("post-text");
+                      postEl.textContent = text;
+
+                      const oneImgDiv = document.createElement("div");
+                      oneImgDiv.classList.add("one-scenario-image");
+                      oneImgDiv.classList.add("hide");
                       {
-                        const profileImg = document.createElement("img");
-                        profileImg.classList.add("twitter-author-image");
-                        profileImg.loading = "lazy";
-                        profileImg.src = author_details.profile_image_url;
-                        profileImg.alt = "";
+                        const imgEl = document.createElement("img");
+                        imgEl.classList.add("cover-image");
+                        imgEl.loading = "lazy";
+                        imgEl.alt = "";
 
-                        const colDiv = document.createElement("div");
-                        colDiv.classList.add("column");
-                        {
-                          const nameEl = document.createElement("div");
-                          nameEl.classList.add("name-text");
-                          nameEl.textContent = author_details.name;
-
-                          const handleEl = document.createElement("div");
-                          handleEl.classList.add("handle-text");
-                          handleEl.textContent = `@${author_details.username}`;
-
-                          colDiv.appendChild(nameEl);
-                          colDiv.appendChild(handleEl);
-                        }
-
-                        const iconDiv = document.createElement("img");
-                        iconDiv.classList.add("twitter-icon-image");
-                        iconDiv.sizes = "20px";
-                        iconDiv.loading = "lazy";
-                        iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
-                        iconDiv.src =
-                          "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
-
-                        authorDiv.appendChild(profileImg);
-                        authorDiv.appendChild(colDiv);
-                        authorDiv.appendChild(iconDiv);
+                        oneImgDiv.appendChild(imgEl);
                       }
 
-                      const postDiv = document.createElement("div");
-                      postDiv.classList.add("overflow-block");
+                      const twoImgDiv = document.createElement("div");
+                      twoImgDiv.classList.add("two-scenario-image-wrap");
+                      twoImgDiv.classList.add("hide");
+                      twoImgDiv.style.display = "none";
                       {
-                        const postEl = document.createElement("p");
-                        postEl.classList.add("post-text");
-                        postEl.textContent = text;
-
-                        const oneImgDiv = document.createElement("div");
-                        oneImgDiv.classList.add("one-scenario-image");
-                        oneImgDiv.classList.add("hide");
+                        const imgDiv1 = document.createElement("div");
+                        imgDiv1.id =
+                          "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
+                        imgDiv1.classList.add("two-scenario-image");
                         {
                           const imgEl = document.createElement("img");
                           imgEl.classList.add("cover-image");
                           imgEl.loading = "lazy";
                           imgEl.alt = "";
 
-                          oneImgDiv.appendChild(imgEl);
+                          imgDiv1.appendChild(imgEl);
                         }
 
-                        const twoImgDiv = document.createElement("div");
-                        twoImgDiv.classList.add("two-scenario-image-wrap");
-                        twoImgDiv.classList.add("hide");
-                        twoImgDiv.style.display = "none";
-                        {
-                          const imgDiv1 = document.createElement("div");
-                          imgDiv1.id =
-                            "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
-                          imgDiv1.classList.add("two-scenario-image");
-                          {
-                            const imgEl = document.createElement("img");
-                            imgEl.classList.add("cover-image");
-                            imgEl.loading = "lazy";
-                            imgEl.alt = "";
-
-                            imgDiv1.appendChild(imgEl);
-                          }
-
-                          const imgDiv2 = document.createElement("div");
-                          imgDiv2.id =
-                            "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                          imgDiv2.classList.add("two-scenario-image");
-                          {
-                            const imgEl = document.createElement("img");
-                            imgEl.classList.add("cover-image");
-                            imgEl.loading = "lazy";
-                            imgEl.alt = "";
-
-                            imgDiv2.appendChild(imgEl);
-                          }
-
-                          twoImgDiv.appendChild(imgDiv1);
-                          twoImgDiv.appendChild(imgDiv2);
-                        }
-
-                        const oneVidDiv = document.createElement("div");
-                        oneVidDiv.classList.add("w-video");
-                        oneVidDiv.classList.add("w-embed");
-                        oneVidDiv.classList.add("one-video");
-                        oneVidDiv.classList.add("hide");
-                        oneVidDiv.id =
+                        const imgDiv2 = document.createElement("div");
+                        imgDiv2.id =
                           "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                        imgDiv2.classList.add("two-scenario-image");
                         {
-                          const videoEl = document.createElement("video");
-                          videoEl.autoplay = false;
+                          const imgEl = document.createElement("img");
+                          imgEl.classList.add("cover-image");
+                          imgEl.loading = "lazy";
+                          imgEl.alt = "";
 
-                          oneVidDiv.appendChild(videoEl);
+                          imgDiv2.appendChild(imgEl);
                         }
 
-                        if (tweet.attachement_urls) {
-                          const urls = tweet.attachement_urls;
-                          const n = urls.length;
-                          if (n === 1) {
-                            oneImgDiv.classList.remove("hide");
-                            oneImgDiv.querySelector("img").src = urls[0];
-                          } else if (n == 2) {
-                            twoImgDiv.classList.remove("hide");
-                            twoImgDiv
-                              .querySelectorAll("img")
-                              .forEach((x, i) => (x.src = urls[i]));
-                          }
-                        }
-
-                        postDiv.appendChild(postEl);
-                        postDiv.appendChild(oneImgDiv);
-                        postDiv.appendChild(twoImgDiv);
-                        postDiv.appendChild(oneVidDiv);
+                        twoImgDiv.appendChild(imgDiv1);
+                        twoImgDiv.appendChild(imgDiv2);
                       }
 
-                      const dateDiv = document.createElement("div");
-                      dateDiv.classList.add("date-text");
+                      const oneVidDiv = document.createElement("div");
+                      oneVidDiv.classList.add("w-video");
+                      oneVidDiv.classList.add("w-embed");
+                      oneVidDiv.classList.add("one-video");
+                      oneVidDiv.classList.add("hide");
+                      oneVidDiv.id =
+                        "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
                       {
-                        const timeEl = document.createElement("div");
-                        timeEl.classList.add("post-time");
-                        timeEl.textContent = created_at.time;
+                        const videoEl = document.createElement("video");
+                        videoEl.autoplay = false;
 
-                        const dotEl = document.createElement("div");
-                        dotEl.classList.add("span-dot");
-                        {
-                          const textEl = document.createTextNode(".");
-                          dotEl.appendChild(textEl);
-                        }
-
-                        const dateEl = document.createElement("div");
-                        dateEl.classList.add("post-date");
-                        dateEl.textContent = created_at.date;
-
-                        dateDiv.appendChild(timeEl);
-                        dateDiv.appendChild(dotEl);
-                        dateDiv.appendChild(dateEl);
+                        oneVidDiv.appendChild(videoEl);
                       }
 
-                      const checkboxesContainer = document.createElement("div");
-                      checkboxesContainer.classList.add("checkboxes-wrapper");
+                      if (tweet.attachement_urls) {
+                        const urls = tweet.attachement_urls;
+                        const n = urls.length;
+                        if (n === 1) {
+                          oneImgDiv.classList.remove("hide");
+                          oneImgDiv.querySelector("img").src = urls[0];
+                        } else if (n == 2) {
+                          twoImgDiv.classList.remove("hide");
+                          twoImgDiv
+                            .querySelectorAll("img")
+                            .forEach((x, i) => (x.src = urls[i]));
+                        }
+                      }
+
+                      postDiv.appendChild(postEl);
+                      postDiv.appendChild(oneImgDiv);
+                      postDiv.appendChild(twoImgDiv);
+                      postDiv.appendChild(oneVidDiv);
+                    }
+
+                    const dateDiv = document.createElement("div");
+                    dateDiv.classList.add("date-text");
+                    {
+                      const timeEl = document.createElement("div");
+                      timeEl.classList.add("post-time");
+                      timeEl.textContent = created_at.time;
+
+                      const dotEl = document.createElement("div");
+                      dotEl.classList.add("span-dot");
                       {
-                        const likeContainer = document.createElement("div");
-                        likeContainer.classList.add("column");
+                        const textEl = document.createTextNode(".");
+                        dotEl.appendChild(textEl);
+                      }
+
+                      const dateEl = document.createElement("div");
+                      dateEl.classList.add("post-date");
+                      dateEl.textContent = created_at.date;
+
+                      dateDiv.appendChild(timeEl);
+                      dateDiv.appendChild(dotEl);
+                      dateDiv.appendChild(dateEl);
+                    }
+
+                    const checkboxesContainer = document.createElement("div");
+                    checkboxesContainer.classList.add("checkboxes-wrapper");
+                    {
+                      const likeContainer = document.createElement("div");
+                      likeContainer.classList.add("column");
+                      {
+                        const likeLabel = document.createElement("label");
+                        likeLabel.classList.add("w-checkbox");
+                        likeLabel.classList.add("like-checkbox");
                         {
-                          const likeLabel = document.createElement("label");
-                          likeLabel.classList.add("w-checkbox");
-                          likeLabel.classList.add("like-checkbox");
+                          const iconDiv = document.createElement("div");
+                          iconDiv.classList.add("w-checkbox-input");
+                          iconDiv.classList.add(
+                            "w-checkbox-input--inputType-custom"
+                          );
+                          iconDiv.classList.add("like-checkbox-check");
+
+                          const inputEl = document.createElement("input");
+                          inputEl.id = "Loike-Checkbox-2";
+                          inputEl.type = "checkbox";
+                          inputEl.setAttribute("data-name", "Loike Checkbox 2");
+                          inputEl.style.position = "absolute";
+                          inputEl.style.opacity = "0";
+                          inputEl.style.zIndex = "-1";
                           {
-                            const iconDiv = document.createElement("div");
-                            iconDiv.classList.add("w-checkbox-input");
-                            iconDiv.classList.add(
-                              "w-checkbox-input--inputType-custom"
-                            );
-                            iconDiv.classList.add("like-checkbox-check");
-
-                            const inputEl = document.createElement("input");
-                            inputEl.id = "Loike-Checkbox-2";
-                            inputEl.type = "checkbox";
-                            inputEl.setAttribute(
-                              "data-name",
-                              "Loike Checkbox 2"
-                            );
-                            inputEl.style.position = "absolute";
-                            inputEl.style.opacity = "0";
-                            inputEl.style.zIndex = "-1";
-                            {
-                              inputEl.addEventListener("change", async () => {
-                                if (inputEl.checked) {
-                                  try {
-                                    const resp =
-                                      await apiCall.getReq<ActionResponse>(
-                                        `/user/like/${tid}`
-                                      );
-                                    if (resp.limit_exceeded)
-                                      handleResponse("like", true);
-                                    rootEl.remove();
-                                  } catch (error) {
-                                    console.error(error);
-                                  }
+                            inputEl.addEventListener("change", async () => {
+                              if (inputEl.checked) {
+                                try {
+                                  const resp =
+                                    await apiCall.getReq<ActionResponse>(
+                                      `/user/like/${tid}`
+                                    );
+                                  if (resp.limit_exceeded)
+                                    handleResponse("like", true);
+                                  rootEl.remove();
+                                } catch (error) {
+                                  console.error(error);
                                 }
-                              });
+                              }
+                            });
+                          }
+
+                          const spanEl = document.createElement("span");
+                          spanEl.classList.add("w-form-label");
+                          spanEl.classList.add("checkbox-label-card");
+                          spanEl.setAttribute("for", "Loike-Checkbox-2");
+                          spanEl.textContent = "Like";
+
+                          likeLabel.appendChild(iconDiv);
+                          likeLabel.appendChild(inputEl);
+                          likeLabel.appendChild(spanEl);
+                        }
+
+                        const likeError = document.createElement("div");
+                        likeError.classList.add("error-like");
+                        likeError.classList.add("hide");
+                        likeError.textContent =
+                          "You've exceeded amount of tweets to be liked";
+
+                        likeContainer.appendChild(likeLabel);
+                        likeContainer.appendChild(likeError);
+                      }
+
+                      checkboxesContainer.appendChild(likeContainer);
+                    }
+
+                    boxDiv.appendChild(authorDiv);
+                    boxDiv.appendChild(postDiv);
+                    boxDiv.appendChild(dateDiv);
+                    boxDiv.appendChild(checkboxesContainer);
+                  }
+
+                  formEl.appendChild(boxDiv);
+                }
+
+                formDiv.appendChild(formEl);
+              }
+
+              rootEl.appendChild(formDiv);
+            }
+
+            containerElLike.appendChild(rootEl);
+          }
+
+          likeLoader.css("display", "none");
+
+          document
+            .querySelector("a.refresh-liked")
+            .addEventListener("click", async () => {
+              try {
+                likeLoader.css("display", "block");
+                const randomArray = shuffle(tweetsToLike.length);
+
+                containerElLike
+                  .querySelectorAll(".swiper-slide")
+                  .forEach((x) => x.remove());
+
+                for (let i = 0; i < tweetsToLike.length; i++) {
+                  const tweet: TodoTweetObj = tweetsToLike[randomArray[i]];
+
+                  const { id: tid, text, created_at, author_details } = tweet;
+
+                  // creating tweet element
+                  const rootEl = document.createElement("div");
+                  rootEl.classList.add("swiper-slide");
+                  {
+                    const formDiv = document.createElement("div");
+                    formDiv.classList.add("form-block-twitter");
+                    formDiv.classList.add("w-form");
+                    {
+                      const formEl = document.createElement("form");
+                      formEl.classList.add("form-twitter");
+                      {
+                        const boxDiv = document.createElement("div");
+                        boxDiv.classList.add("form-card");
+                        {
+                          const authorDiv = document.createElement("div");
+                          authorDiv.classList.add("twitter-author");
+                          {
+                            const profileImg = document.createElement("img");
+                            profileImg.classList.add("twitter-author-image");
+                            profileImg.loading = "lazy";
+                            profileImg.src = author_details.profile_image_url;
+                            profileImg.alt = "";
+
+                            const colDiv = document.createElement("div");
+                            colDiv.classList.add("column");
+                            {
+                              const nameEl = document.createElement("div");
+                              nameEl.classList.add("name-text");
+                              nameEl.textContent = author_details.name;
+
+                              const handleEl = document.createElement("div");
+                              handleEl.classList.add("handle-text");
+                              handleEl.textContent = `@${author_details.username}`;
+
+                              colDiv.appendChild(nameEl);
+                              colDiv.appendChild(handleEl);
                             }
 
-                            const spanEl = document.createElement("span");
-                            spanEl.classList.add("w-form-label");
-                            spanEl.classList.add("checkbox-label-card");
-                            spanEl.setAttribute("for", "Loike-Checkbox-2");
-                            spanEl.textContent = "Like";
+                            const iconDiv = document.createElement("img");
+                            iconDiv.classList.add("twitter-icon-image");
+                            iconDiv.sizes = "20px";
+                            iconDiv.loading = "lazy";
+                            iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
+                            iconDiv.src =
+                              "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
 
-                            likeLabel.appendChild(iconDiv);
-                            likeLabel.appendChild(inputEl);
-                            likeLabel.appendChild(spanEl);
+                            authorDiv.appendChild(profileImg);
+                            authorDiv.appendChild(colDiv);
+                            authorDiv.appendChild(iconDiv);
                           }
 
-                          const likeError = document.createElement("div");
-                          likeError.classList.add("error-like");
-                          likeError.classList.add("hide");
-                          likeError.textContent =
-                            "You've exceeded amount of tweets to be liked";
+                          const postDiv = document.createElement("div");
+                          postDiv.classList.add("overflow-block");
+                          {
+                            const postEl = document.createElement("p");
+                            postEl.classList.add("post-text");
+                            postEl.textContent = text;
 
-                          likeContainer.appendChild(likeLabel);
-                          likeContainer.appendChild(likeError);
+                            const oneImgDiv = document.createElement("div");
+                            oneImgDiv.classList.add("one-scenario-image");
+                            oneImgDiv.classList.add("hide");
+                            {
+                              const imgEl = document.createElement("img");
+                              imgEl.classList.add("cover-image");
+                              imgEl.loading = "lazy";
+                              imgEl.alt = "";
+
+                              oneImgDiv.appendChild(imgEl);
+                            }
+
+                            const twoImgDiv = document.createElement("div");
+                            twoImgDiv.classList.add("two-scenario-image-wrap");
+                            twoImgDiv.classList.add("hide");
+                            twoImgDiv.style.display = "none";
+                            {
+                              const imgDiv1 = document.createElement("div");
+                              imgDiv1.id =
+                                "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
+                              imgDiv1.classList.add("two-scenario-image");
+                              {
+                                const imgEl = document.createElement("img");
+                                imgEl.classList.add("cover-image");
+                                imgEl.loading = "lazy";
+                                imgEl.alt = "";
+
+                                imgDiv1.appendChild(imgEl);
+                              }
+
+                              const imgDiv2 = document.createElement("div");
+                              imgDiv2.id =
+                                "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                              imgDiv2.classList.add("two-scenario-image");
+                              {
+                                const imgEl = document.createElement("img");
+                                imgEl.classList.add("cover-image");
+                                imgEl.loading = "lazy";
+                                imgEl.alt = "";
+
+                                imgDiv2.appendChild(imgEl);
+                              }
+
+                              twoImgDiv.appendChild(imgDiv1);
+                              twoImgDiv.appendChild(imgDiv2);
+                            }
+
+                            const oneVidDiv = document.createElement("div");
+                            oneVidDiv.classList.add("w-video");
+                            oneVidDiv.classList.add("w-embed");
+                            oneVidDiv.classList.add("one-video");
+                            oneVidDiv.classList.add("hide");
+                            oneVidDiv.id =
+                              "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                            {
+                              const videoEl = document.createElement("video");
+                              videoEl.autoplay = false;
+
+                              oneVidDiv.appendChild(videoEl);
+                            }
+
+                            if (tweet.attachement_urls) {
+                              const urls = tweet.attachement_urls;
+                              const n = urls.length;
+                              if (n === 1) {
+                                oneImgDiv.classList.remove("hide");
+                                oneImgDiv.querySelector("img").src = urls[0];
+                              } else if (n == 2) {
+                                twoImgDiv.classList.remove("hide");
+                                twoImgDiv
+                                  .querySelectorAll("img")
+                                  .forEach((x, i) => (x.src = urls[i]));
+                              }
+                            }
+
+                            postDiv.appendChild(postEl);
+                            postDiv.appendChild(oneImgDiv);
+                            postDiv.appendChild(twoImgDiv);
+                            postDiv.appendChild(oneVidDiv);
+                          }
+
+                          const dateDiv = document.createElement("div");
+                          dateDiv.classList.add("date-text");
+                          {
+                            const timeEl = document.createElement("div");
+                            timeEl.classList.add("post-time");
+                            timeEl.textContent = created_at.time;
+
+                            const dotEl = document.createElement("div");
+                            dotEl.classList.add("span-dot");
+                            {
+                              const textEl = document.createTextNode(".");
+                              dotEl.appendChild(textEl);
+                            }
+
+                            const dateEl = document.createElement("div");
+                            dateEl.classList.add("post-date");
+                            dateEl.textContent = created_at.date;
+
+                            dateDiv.appendChild(timeEl);
+                            dateDiv.appendChild(dotEl);
+                            dateDiv.appendChild(dateEl);
+                          }
+
+                          const checkboxesContainer =
+                            document.createElement("div");
+                          checkboxesContainer.classList.add(
+                            "checkboxes-wrapper"
+                          );
+                          {
+                            const likeContainer = document.createElement("div");
+                            likeContainer.classList.add("column");
+                            {
+                              const likeLabel = document.createElement("label");
+                              likeLabel.classList.add("w-checkbox");
+                              likeLabel.classList.add("like-checkbox");
+                              {
+                                const iconDiv = document.createElement("div");
+                                iconDiv.classList.add("w-checkbox-input");
+                                iconDiv.classList.add(
+                                  "w-checkbox-input--inputType-custom"
+                                );
+                                iconDiv.classList.add("like-checkbox-check");
+
+                                const inputEl = document.createElement("input");
+                                inputEl.id = "Loike-Checkbox-2";
+                                inputEl.type = "checkbox";
+                                inputEl.setAttribute(
+                                  "data-name",
+                                  "Loike Checkbox 2"
+                                );
+                                inputEl.style.position = "absolute";
+                                inputEl.style.opacity = "0";
+                                inputEl.style.zIndex = "-1";
+                                {
+                                  inputEl.addEventListener(
+                                    "change",
+                                    async () => {
+                                      if (inputEl.checked) {
+                                        try {
+                                          const resp =
+                                            await apiCall.getReq<ActionResponse>(
+                                              `/user/like/${tid}`
+                                            );
+                                          if (resp.limit_exceeded)
+                                            handleResponse("like", true);
+                                          rootEl.remove();
+                                        } catch (error) {
+                                          console.error(error);
+                                        }
+                                      }
+                                    }
+                                  );
+                                }
+
+                                const spanEl = document.createElement("span");
+                                spanEl.classList.add("w-form-label");
+                                spanEl.classList.add("checkbox-label-card");
+                                spanEl.setAttribute("for", "Loike-Checkbox-2");
+                                spanEl.textContent = "Like";
+
+                                likeLabel.appendChild(iconDiv);
+                                likeLabel.appendChild(inputEl);
+                                likeLabel.appendChild(spanEl);
+                              }
+
+                              const likeError = document.createElement("div");
+                              likeError.classList.add("error-like");
+                              likeError.classList.add("hide");
+                              likeError.textContent =
+                                "You've exceeded amount of tweets to be liked";
+
+                              likeContainer.appendChild(likeLabel);
+                              likeContainer.appendChild(likeError);
+                            }
+
+                            checkboxesContainer.appendChild(likeContainer);
+                          }
+
+                          boxDiv.appendChild(authorDiv);
+                          boxDiv.appendChild(postDiv);
+                          boxDiv.appendChild(dateDiv);
+                          boxDiv.appendChild(checkboxesContainer);
                         }
 
-                        checkboxesContainer.appendChild(likeContainer);
+                        formEl.appendChild(boxDiv);
                       }
 
-                      boxDiv.appendChild(authorDiv);
-                      boxDiv.appendChild(postDiv);
-                      boxDiv.appendChild(dateDiv);
-                      boxDiv.appendChild(checkboxesContainer);
+                      formDiv.appendChild(formEl);
                     }
 
-                    formEl.appendChild(boxDiv);
+                    rootEl.appendChild(formDiv);
                   }
 
-                  formDiv.appendChild(formEl);
+                  containerElLike.appendChild(rootEl);
                 }
 
-                rootEl.appendChild(formDiv);
-              }
-
-              containerElLike.appendChild(rootEl);
-            }
-
-            likeLoader.css("display", "none");
-          } catch (error) {
-            console.error(error);
-          }
-        });
-
-      // fetching tweets to reply
-
-      let { tweets: tweetsToReply, limit_exceeded: limit_exceeded_reply } =
-        await apiCall.getReq<GetTweetsResp>("/user/tweets/reply");
-
-      const replyLoader = $(document.getElementById("comment-preloader"));
-      const containerElReply = document.getElementById("comment-swiper");
-
-      if (limit_exceeded_reply) handleResponse("comment", true);
-
-      containerElReply
-        .querySelectorAll(".swiper-slide")
-        .forEach((x) => x.remove());
-
-      for (let i = 0; i < tweetsToReply.length; i++) {
-        const tweet: TodoTweetObj = tweetsToReply[i];
-
-        const { id: tid, text, created_at, author_details } = tweet;
-
-        // creating tweet element
-        const rootEl = document.createElement("div");
-        rootEl.classList.add("swiper-slide");
-        {
-          const formDiv = document.createElement("div");
-          formDiv.classList.add("form-block-twitter");
-          formDiv.classList.add("w-form");
-          {
-            const formEl = document.createElement("form");
-            formEl.classList.add("form-twitter");
-            {
-              const boxDiv = document.createElement("div");
-              boxDiv.classList.add("form-card");
-              {
-                const authorDiv = document.createElement("div");
-                authorDiv.classList.add("twitter-author");
-                {
-                  const profileImg = document.createElement("img");
-                  profileImg.classList.add("twitter-author-image");
-                  profileImg.loading = "lazy";
-                  profileImg.src = author_details.profile_image_url;
-                  profileImg.alt = "";
-
-                  const colDiv = document.createElement("div");
-                  colDiv.classList.add("column");
-                  {
-                    const nameEl = document.createElement("div");
-                    nameEl.classList.add("name-text");
-                    nameEl.textContent = author_details.name;
-
-                    const handleEl = document.createElement("div");
-                    handleEl.classList.add("handle-text");
-                    handleEl.textContent = `@${author_details.username}`;
-
-                    colDiv.appendChild(nameEl);
-                    colDiv.appendChild(handleEl);
-                  }
-
-                  const iconDiv = document.createElement("img");
-                  iconDiv.classList.add("twitter-icon-image");
-                  iconDiv.sizes = "20px";
-                  iconDiv.loading = "lazy";
-                  iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
-                  iconDiv.src =
-                    "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
-
-                  authorDiv.appendChild(profileImg);
-                  authorDiv.appendChild(colDiv);
-                  authorDiv.appendChild(iconDiv);
-                }
-
-                const postDiv = document.createElement("div");
-                postDiv.classList.add("overflow-block");
-                {
-                  const postEl = document.createElement("p");
-                  postEl.classList.add("post-text");
-                  postEl.textContent = text;
-
-                  const oneImgDiv = document.createElement("div");
-                  oneImgDiv.classList.add("one-scenario-image");
-                  oneImgDiv.classList.add("hide");
-                  {
-                    const imgEl = document.createElement("img");
-                    imgEl.classList.add("cover-image");
-                    imgEl.loading = "lazy";
-                    imgEl.alt = "";
-
-                    oneImgDiv.appendChild(imgEl);
-                  }
-
-                  const twoImgDiv = document.createElement("div");
-                  twoImgDiv.classList.add("two-scenario-image-wrap");
-                  twoImgDiv.classList.add("hide");
-                  twoImgDiv.style.display = "none";
-                  {
-                    const imgDiv1 = document.createElement("div");
-                    imgDiv1.id =
-                      "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
-                    imgDiv1.classList.add("two-scenario-image");
-                    {
-                      const imgEl = document.createElement("img");
-                      imgEl.classList.add("cover-image");
-                      imgEl.loading = "lazy";
-                      imgEl.alt = "";
-
-                      imgDiv1.appendChild(imgEl);
-                    }
-
-                    const imgDiv2 = document.createElement("div");
-                    imgDiv2.id =
-                      "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                    imgDiv2.classList.add("two-scenario-image");
-                    {
-                      const imgEl = document.createElement("img");
-                      imgEl.classList.add("cover-image");
-                      imgEl.loading = "lazy";
-                      imgEl.alt = "";
-
-                      imgDiv2.appendChild(imgEl);
-                    }
-
-                    twoImgDiv.appendChild(imgDiv1);
-                    twoImgDiv.appendChild(imgDiv2);
-                  }
-
-                  const oneVidDiv = document.createElement("div");
-                  oneVidDiv.classList.add("w-video");
-                  oneVidDiv.classList.add("w-embed");
-                  oneVidDiv.classList.add("one-video");
-                  oneVidDiv.classList.add("hide");
-                  oneVidDiv.id =
-                    "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                  {
-                    const videoEl = document.createElement("video");
-                    videoEl.autoplay = false;
-
-                    oneVidDiv.appendChild(videoEl);
-                  }
-
-                  if (tweet.attachement_urls) {
-                    const urls = tweet.attachement_urls;
-                    const n = urls.length;
-                    if (n === 1) {
-                      oneImgDiv.classList.remove("hide");
-                      oneImgDiv.querySelector("img").src = urls[0];
-                    } else if (n == 2) {
-                      twoImgDiv.classList.remove("hide");
-                      twoImgDiv
-                        .querySelectorAll("img")
-                        .forEach((x, i) => (x.src = urls[i]));
-                    }
-                  }
-
-                  postDiv.appendChild(postEl);
-                  postDiv.appendChild(oneImgDiv);
-                  postDiv.appendChild(twoImgDiv);
-                  postDiv.appendChild(oneVidDiv);
-                }
-
-                const dateDiv = document.createElement("div");
-                dateDiv.classList.add("date-text");
-                {
-                  const timeEl = document.createElement("div");
-                  timeEl.classList.add("post-time");
-                  timeEl.textContent = created_at.time;
-
-                  const dotEl = document.createElement("div");
-                  dotEl.classList.add("span-dot");
-                  {
-                    const textEl = document.createTextNode(".");
-                    dotEl.appendChild(textEl);
-                  }
-
-                  const dateEl = document.createElement("div");
-                  dateEl.classList.add("post-date");
-                  dateEl.textContent = created_at.date;
-
-                  dateDiv.appendChild(timeEl);
-                  dateDiv.appendChild(dotEl);
-                  dateDiv.appendChild(dateEl);
-                }
-
-                const checkboxesContainer = document.createElement("div");
-                checkboxesContainer.classList.add("checkboxes-wrapper");
-                {
-                  const replyContainer = document.createElement("div");
-                  replyContainer.classList.add("column");
-                  replyContainer.setAttribute(
-                    "data-w-id",
-                    "48652e03-98b1-c9e0-2cfc-1cf2558c7403"
-                  );
-                  {
-                    const replyLabel = document.createElement("div");
-                    replyLabel.classList.add("comment-checkbox");
-                    {
-                      const iconDiv = document.createElement("div");
-                      iconDiv.classList.add("comment-checkbox-check");
-
-                      const labelText = document.createElement("div");
-                      labelText.classList.add("checkbox-label-card");
-                      labelText.textContent = "Comment";
-
-                      replyLabel.appendChild(iconDiv);
-                      replyLabel.appendChild(labelText);
-                    }
-
-                    const replyError = document.createElement("div");
-                    replyError.classList.add("comment-error");
-                    replyError.classList.add("hide");
-                    replyError.textContent =
-                      "You've exceeded amount of tweets to be commented";
-
-                    replyContainer.appendChild(replyLabel);
-                    replyContainer.appendChild(replyError);
-                  }
-
-                  const replyInputContainer = document.createElement("div");
-                  replyInputContainer.classList.add("comment-wrapper");
-                  {
-                    const textEl = document.createElement("textarea");
-                    textEl.id = "field-2";
-                    textEl.classList.add("twitter-comment-input");
-                    textEl.classList.add("w-input");
-                    textEl.placeholder = "Your reply";
-                    textEl.maxLength = 5000;
-                    textEl.name = "field-2";
-                    textEl.setAttribute("data-name", "field");
-
-                    const xComment = document.createElement("div");
-                    xComment.classList.add("x-comment");
-                    xComment.setAttribute(
-                      "data-w-id",
-                      "7d49dde2-22af-3af3-4d2a-6779b7115ead"
-                    );
-                    {
-                      const imgEl = document.createElement("img");
-                      imgEl.classList.add("cover-image");
-                      imgEl.src =
-                        "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62a1c558370c3e8bfb46546a_16x16%20input%20arrow.svg";
-                      imgEl.loading = "lazy";
-                      imgEl.alt = "";
-
-                      xComment.appendChild(imgEl);
-                    }
-
-                    replyInputContainer.appendChild(textEl);
-                    replyInputContainer.appendChild(xComment);
-                  }
-
-                  replyContainer.addEventListener("click", async function () {
-                    const $this = $(replyInputContainer);
-                    $this.css("display", "flex");
-                    $this.addClass("active-comment-wrapper");
-                  });
-                  replyInputContainer
-                    .querySelector(".x-comment")
-                    .addEventListener("click", async function () {
-                      const $this = $(replyInputContainer);
-                      $this.removeClass("active-comment-wrapper");
-                      setTimeout(() => $this.css("display", "none"), 250);
-                    });
-
-                  checkboxesContainer.appendChild(replyContainer);
-                  checkboxesContainer.appendChild(replyInputContainer);
-                }
-
-                const submitBtn = document.createElement("input");
-                submitBtn.classList.add("submit-button");
-                submitBtn.classList.add("w-button");
-                submitBtn.setAttribute("type", "submit");
-                submitBtn.setAttribute("data-wait", "Please wait...");
-                submitBtn.value = "Submit";
-
-                boxDiv.appendChild(authorDiv);
-                boxDiv.appendChild(postDiv);
-                boxDiv.appendChild(dateDiv);
-                boxDiv.appendChild(checkboxesContainer);
-                boxDiv.appendChild(submitBtn);
-              }
-
-              formEl.appendChild(boxDiv);
-            }
-
-            formEl.addEventListener("submit", async function (ev) {
-              ev.preventDefault();
-              ev.stopImmediatePropagation();
-              ev.stopPropagation();
-
-              try {
-                const textEl = formEl.querySelector("textarea");
-                if (textEl.value) {
-                  const resp = await apiCall.postReq<ActionResponse>(
-                    `/user/reply/${tid}`,
-                    {
-                      id: tid,
-                      text: textEl.value,
-                      username: author_details.username
-                    }
-                  );
-                  if (resp.limit_exceeded) handleResponse("comment", true);
-                  rootEl.remove();
-                }
+                likeLoader.css("display", "none");
               } catch (error) {
                 console.error(error);
               }
             });
-
-            formDiv.appendChild(formEl);
-          }
-
-          rootEl.appendChild(formDiv);
+        } catch (error) {
+          console.error(error);
         }
-
-        containerElReply.appendChild(rootEl);
       }
 
-      replyLoader.css("display", "none");
+      // fetching tweets to comment
+      {
+        try {
+          let { tweets: tweetsToReply, limit_exceeded: limit_exceeded_reply } =
+            await apiCall.getReq<GetTweetsResp>("/user/tweets/reply");
 
-      document
-        .querySelector("a.refresh-commented")
-        .addEventListener("click", async () => {
-          try {
-            replyLoader.css("display", "block");
-            const randomArray = shuffle(tweetsToReply.length);
+          const replyLoader = $(document.getElementById("comment-preloader"));
+          const containerElReply = document.getElementById("comment-swiper");
 
-            containerElReply
-              .querySelectorAll(".swiper-slide")
-              .forEach((x) => x.remove());
+          if (limit_exceeded_reply) handleResponse("comment", true);
 
-            for (let i = 0; i < tweetsToReply.length; i++) {
-              const tweet: TodoTweetObj = tweetsToReply[randomArray[i]];
+          containerElReply
+            .querySelectorAll(".swiper-slide")
+            .forEach((x) => x.remove());
 
-              const { id: tid, text, created_at, author_details } = tweet;
+          for (let i = 0; i < tweetsToReply.length; i++) {
+            const tweet: TodoTweetObj = tweetsToReply[i];
 
-              // creating tweet element
-              const rootEl = document.createElement("div");
-              rootEl.classList.add("swiper-slide");
+            const { id: tid, text, created_at, author_details } = tweet;
+
+            // creating tweet element
+            const rootEl = document.createElement("div");
+            rootEl.classList.add("swiper-slide");
+            {
+              const formDiv = document.createElement("div");
+              formDiv.classList.add("form-block-twitter");
+              formDiv.classList.add("w-form");
               {
-                const formDiv = document.createElement("div");
-                formDiv.classList.add("form-block-twitter");
-                formDiv.classList.add("w-form");
+                const formEl = document.createElement("form");
+                formEl.classList.add("form-twitter");
                 {
-                  const formEl = document.createElement("form");
-                  formEl.classList.add("form-twitter");
+                  const boxDiv = document.createElement("div");
+                  boxDiv.classList.add("form-card");
                   {
-                    const boxDiv = document.createElement("div");
-                    boxDiv.classList.add("form-card");
+                    const authorDiv = document.createElement("div");
+                    authorDiv.classList.add("twitter-author");
                     {
-                      const authorDiv = document.createElement("div");
-                      authorDiv.classList.add("twitter-author");
+                      const profileImg = document.createElement("img");
+                      profileImg.classList.add("twitter-author-image");
+                      profileImg.loading = "lazy";
+                      profileImg.src = author_details.profile_image_url;
+                      profileImg.alt = "";
+
+                      const colDiv = document.createElement("div");
+                      colDiv.classList.add("column");
                       {
-                        const profileImg = document.createElement("img");
-                        profileImg.classList.add("twitter-author-image");
-                        profileImg.loading = "lazy";
-                        profileImg.src = author_details.profile_image_url;
-                        profileImg.alt = "";
+                        const nameEl = document.createElement("div");
+                        nameEl.classList.add("name-text");
+                        nameEl.textContent = author_details.name;
 
-                        const colDiv = document.createElement("div");
-                        colDiv.classList.add("column");
-                        {
-                          const nameEl = document.createElement("div");
-                          nameEl.classList.add("name-text");
-                          nameEl.textContent = author_details.name;
+                        const handleEl = document.createElement("div");
+                        handleEl.classList.add("handle-text");
+                        handleEl.textContent = `@${author_details.username}`;
 
-                          const handleEl = document.createElement("div");
-                          handleEl.classList.add("handle-text");
-                          handleEl.textContent = `@${author_details.username}`;
-
-                          colDiv.appendChild(nameEl);
-                          colDiv.appendChild(handleEl);
-                        }
-
-                        const iconDiv = document.createElement("img");
-                        iconDiv.classList.add("twitter-icon-image");
-                        iconDiv.sizes = "20px";
-                        iconDiv.loading = "lazy";
-                        iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
-                        iconDiv.src =
-                          "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
-
-                        authorDiv.appendChild(profileImg);
-                        authorDiv.appendChild(colDiv);
-                        authorDiv.appendChild(iconDiv);
+                        colDiv.appendChild(nameEl);
+                        colDiv.appendChild(handleEl);
                       }
 
-                      const postDiv = document.createElement("div");
-                      postDiv.classList.add("overflow-block");
-                      {
-                        const postEl = document.createElement("p");
-                        postEl.classList.add("post-text");
-                        postEl.textContent = text;
+                      const iconDiv = document.createElement("img");
+                      iconDiv.classList.add("twitter-icon-image");
+                      iconDiv.sizes = "20px";
+                      iconDiv.loading = "lazy";
+                      iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
+                      iconDiv.src =
+                        "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
 
-                        const oneImgDiv = document.createElement("div");
-                        oneImgDiv.classList.add("one-scenario-image");
-                        oneImgDiv.classList.add("hide");
+                      authorDiv.appendChild(profileImg);
+                      authorDiv.appendChild(colDiv);
+                      authorDiv.appendChild(iconDiv);
+                    }
+
+                    const postDiv = document.createElement("div");
+                    postDiv.classList.add("overflow-block");
+                    {
+                      const postEl = document.createElement("p");
+                      postEl.classList.add("post-text");
+                      postEl.textContent = text;
+
+                      const oneImgDiv = document.createElement("div");
+                      oneImgDiv.classList.add("one-scenario-image");
+                      oneImgDiv.classList.add("hide");
+                      {
+                        const imgEl = document.createElement("img");
+                        imgEl.classList.add("cover-image");
+                        imgEl.loading = "lazy";
+                        imgEl.alt = "";
+
+                        oneImgDiv.appendChild(imgEl);
+                      }
+
+                      const twoImgDiv = document.createElement("div");
+                      twoImgDiv.classList.add("two-scenario-image-wrap");
+                      twoImgDiv.classList.add("hide");
+                      twoImgDiv.style.display = "none";
+                      {
+                        const imgDiv1 = document.createElement("div");
+                        imgDiv1.id =
+                          "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
+                        imgDiv1.classList.add("two-scenario-image");
                         {
                           const imgEl = document.createElement("img");
                           imgEl.classList.add("cover-image");
                           imgEl.loading = "lazy";
                           imgEl.alt = "";
 
-                          oneImgDiv.appendChild(imgEl);
+                          imgDiv1.appendChild(imgEl);
                         }
 
-                        const twoImgDiv = document.createElement("div");
-                        twoImgDiv.classList.add("two-scenario-image-wrap");
-                        twoImgDiv.classList.add("hide");
-                        twoImgDiv.style.display = "none";
-                        {
-                          const imgDiv1 = document.createElement("div");
-                          imgDiv1.id =
-                            "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
-                          imgDiv1.classList.add("two-scenario-image");
-                          {
-                            const imgEl = document.createElement("img");
-                            imgEl.classList.add("cover-image");
-                            imgEl.loading = "lazy";
-                            imgEl.alt = "";
-
-                            imgDiv1.appendChild(imgEl);
-                          }
-
-                          const imgDiv2 = document.createElement("div");
-                          imgDiv2.id =
-                            "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                          imgDiv2.classList.add("two-scenario-image");
-                          {
-                            const imgEl = document.createElement("img");
-                            imgEl.classList.add("cover-image");
-                            imgEl.loading = "lazy";
-                            imgEl.alt = "";
-
-                            imgDiv2.appendChild(imgEl);
-                          }
-
-                          twoImgDiv.appendChild(imgDiv1);
-                          twoImgDiv.appendChild(imgDiv2);
-                        }
-
-                        const oneVidDiv = document.createElement("div");
-                        oneVidDiv.classList.add("w-video");
-                        oneVidDiv.classList.add("w-embed");
-                        oneVidDiv.classList.add("one-video");
-                        oneVidDiv.classList.add("hide");
-                        oneVidDiv.id =
+                        const imgDiv2 = document.createElement("div");
+                        imgDiv2.id =
                           "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                        imgDiv2.classList.add("two-scenario-image");
                         {
-                          const videoEl = document.createElement("video");
-                          videoEl.autoplay = false;
+                          const imgEl = document.createElement("img");
+                          imgEl.classList.add("cover-image");
+                          imgEl.loading = "lazy";
+                          imgEl.alt = "";
 
-                          oneVidDiv.appendChild(videoEl);
+                          imgDiv2.appendChild(imgEl);
                         }
 
-                        if (tweet.attachement_urls) {
-                          const urls = tweet.attachement_urls;
-                          const n = urls.length;
-                          if (n === 1) {
-                            oneImgDiv.classList.remove("hide");
-                            oneImgDiv.querySelector("img").src = urls[0];
-                          } else if (n == 2) {
-                            twoImgDiv.classList.remove("hide");
-                            twoImgDiv
-                              .querySelectorAll("img")
-                              .forEach((x, i) => (x.src = urls[i]));
-                          }
-                        }
-
-                        postDiv.appendChild(postEl);
-                        postDiv.appendChild(oneImgDiv);
-                        postDiv.appendChild(twoImgDiv);
-                        postDiv.appendChild(oneVidDiv);
+                        twoImgDiv.appendChild(imgDiv1);
+                        twoImgDiv.appendChild(imgDiv2);
                       }
 
-                      const dateDiv = document.createElement("div");
-                      dateDiv.classList.add("date-text");
+                      const oneVidDiv = document.createElement("div");
+                      oneVidDiv.classList.add("w-video");
+                      oneVidDiv.classList.add("w-embed");
+                      oneVidDiv.classList.add("one-video");
+                      oneVidDiv.classList.add("hide");
+                      oneVidDiv.id =
+                        "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
                       {
-                        const timeEl = document.createElement("div");
-                        timeEl.classList.add("post-time");
-                        timeEl.textContent = created_at.time;
+                        const videoEl = document.createElement("video");
+                        videoEl.autoplay = false;
 
-                        const dotEl = document.createElement("div");
-                        dotEl.classList.add("span-dot");
-                        {
-                          const textEl = document.createTextNode(".");
-                          dotEl.appendChild(textEl);
-                        }
-
-                        const dateEl = document.createElement("div");
-                        dateEl.classList.add("post-date");
-                        dateEl.textContent = created_at.date;
-
-                        dateDiv.appendChild(timeEl);
-                        dateDiv.appendChild(dotEl);
-                        dateDiv.appendChild(dateEl);
+                        oneVidDiv.appendChild(videoEl);
                       }
 
-                      const checkboxesContainer = document.createElement("div");
-                      checkboxesContainer.classList.add("checkboxes-wrapper");
+                      if (tweet.attachement_urls) {
+                        const urls = tweet.attachement_urls;
+                        const n = urls.length;
+                        if (n === 1) {
+                          oneImgDiv.classList.remove("hide");
+                          oneImgDiv.querySelector("img").src = urls[0];
+                        } else if (n == 2) {
+                          twoImgDiv.classList.remove("hide");
+                          twoImgDiv
+                            .querySelectorAll("img")
+                            .forEach((x, i) => (x.src = urls[i]));
+                        }
+                      }
+
+                      postDiv.appendChild(postEl);
+                      postDiv.appendChild(oneImgDiv);
+                      postDiv.appendChild(twoImgDiv);
+                      postDiv.appendChild(oneVidDiv);
+                    }
+
+                    const dateDiv = document.createElement("div");
+                    dateDiv.classList.add("date-text");
+                    {
+                      const timeEl = document.createElement("div");
+                      timeEl.classList.add("post-time");
+                      timeEl.textContent = created_at.time;
+
+                      const dotEl = document.createElement("div");
+                      dotEl.classList.add("span-dot");
                       {
-                        const replyContainer = document.createElement("div");
-                        replyContainer.classList.add("column");
-                        replyContainer.setAttribute(
+                        const textEl = document.createTextNode(".");
+                        dotEl.appendChild(textEl);
+                      }
+
+                      const dateEl = document.createElement("div");
+                      dateEl.classList.add("post-date");
+                      dateEl.textContent = created_at.date;
+
+                      dateDiv.appendChild(timeEl);
+                      dateDiv.appendChild(dotEl);
+                      dateDiv.appendChild(dateEl);
+                    }
+
+                    const checkboxesContainer = document.createElement("div");
+                    checkboxesContainer.classList.add("checkboxes-wrapper");
+                    {
+                      const replyContainer = document.createElement("div");
+                      replyContainer.classList.add("column");
+                      replyContainer.setAttribute(
+                        "data-w-id",
+                        "48652e03-98b1-c9e0-2cfc-1cf2558c7403"
+                      );
+                      {
+                        const replyLabel = document.createElement("div");
+                        replyLabel.classList.add("comment-checkbox");
+                        {
+                          const iconDiv = document.createElement("div");
+                          iconDiv.classList.add("comment-checkbox-check");
+
+                          const labelText = document.createElement("div");
+                          labelText.classList.add("checkbox-label-card");
+                          labelText.textContent = "Comment";
+
+                          replyLabel.appendChild(iconDiv);
+                          replyLabel.appendChild(labelText);
+                        }
+
+                        const replyError = document.createElement("div");
+                        replyError.classList.add("comment-error");
+                        replyError.classList.add("hide");
+                        replyError.textContent =
+                          "You've exceeded amount of tweets to be commented";
+
+                        replyContainer.appendChild(replyLabel);
+                        replyContainer.appendChild(replyError);
+                      }
+
+                      const replyInputContainer = document.createElement("div");
+                      replyInputContainer.classList.add("comment-wrapper");
+                      {
+                        const textEl = document.createElement("textarea");
+                        textEl.id = "field-2";
+                        textEl.classList.add("twitter-comment-input");
+                        textEl.classList.add("w-input");
+                        textEl.placeholder = "Your reply";
+                        textEl.maxLength = 5000;
+                        textEl.name = "field-2";
+                        textEl.setAttribute("data-name", "field");
+
+                        const xComment = document.createElement("div");
+                        xComment.classList.add("x-comment");
+                        xComment.setAttribute(
                           "data-w-id",
-                          "48652e03-98b1-c9e0-2cfc-1cf2558c7403"
+                          "7d49dde2-22af-3af3-4d2a-6779b7115ead"
                         );
                         {
-                          const replyLabel = document.createElement("div");
-                          replyLabel.classList.add("comment-checkbox");
-                          {
-                            const iconDiv = document.createElement("div");
-                            iconDiv.classList.add("comment-checkbox-check");
+                          const imgEl = document.createElement("img");
+                          imgEl.classList.add("cover-image");
+                          imgEl.src =
+                            "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62a1c558370c3e8bfb46546a_16x16%20input%20arrow.svg";
+                          imgEl.loading = "lazy";
+                          imgEl.alt = "";
 
-                            const labelText = document.createElement("div");
-                            labelText.classList.add("checkbox-label-card");
-                            labelText.textContent = "Reply";
-
-                            replyLabel.appendChild(iconDiv);
-                            replyLabel.appendChild(labelText);
-                          }
-
-                          const replyError = document.createElement("div");
-                          replyError.classList.add("comment-error");
-                          replyError.classList.add("hide");
-                          replyError.textContent =
-                            "You've exceeded amount of tweets to be commented";
-
-                          replyContainer.appendChild(replyLabel);
-                          replyContainer.appendChild(replyError);
+                          xComment.appendChild(imgEl);
                         }
 
-                        const replyInputContainer =
-                          document.createElement("div");
-                        replyInputContainer.classList.add("comment-wrapper");
-                        {
-                          const textEl = document.createElement("textarea");
-                          textEl.id = "field-2";
-                          textEl.classList.add("twitter-comment-input");
-                          textEl.classList.add("w-input");
-                          textEl.placeholder = "Your reply";
-                          textEl.maxLength = 5000;
-                          textEl.name = "field-2";
-                          textEl.setAttribute("data-name", "field");
+                        replyInputContainer.appendChild(textEl);
+                        replyInputContainer.appendChild(xComment);
+                      }
 
-                          const xComment = document.createElement("div");
-                          xComment.classList.add("x-comment");
-                          xComment.setAttribute(
-                            "data-w-id",
-                            "7d49dde2-22af-3af3-4d2a-6779b7115ead"
+                      replyContainer.addEventListener(
+                        "click",
+                        async function () {
+                          const $this = $(replyInputContainer);
+                          $this.css("display", "flex");
+                          $this.addClass("active-comment-wrapper");
+                        }
+                      );
+                      replyInputContainer
+                        .querySelector(".x-comment")
+                        .addEventListener("click", async function () {
+                          const $this = $(replyInputContainer);
+                          $this.removeClass("active-comment-wrapper");
+                          setTimeout(() => $this.css("display", "none"), 250);
+                        });
+
+                      checkboxesContainer.appendChild(replyContainer);
+                      checkboxesContainer.appendChild(replyInputContainer);
+                    }
+
+                    const submitBtn = document.createElement("input");
+                    submitBtn.classList.add("submit-button");
+                    submitBtn.classList.add("w-button");
+                    submitBtn.setAttribute("type", "submit");
+                    submitBtn.setAttribute("data-wait", "Please wait...");
+                    submitBtn.value = "Submit";
+
+                    boxDiv.appendChild(authorDiv);
+                    boxDiv.appendChild(postDiv);
+                    boxDiv.appendChild(dateDiv);
+                    boxDiv.appendChild(checkboxesContainer);
+                    boxDiv.appendChild(submitBtn);
+                  }
+
+                  formEl.appendChild(boxDiv);
+                }
+
+                formEl.addEventListener("submit", async function (ev) {
+                  ev.preventDefault();
+                  ev.stopImmediatePropagation();
+                  ev.stopPropagation();
+
+                  try {
+                    const textEl = formEl.querySelector("textarea");
+                    if (textEl.value) {
+                      const resp = await apiCall.postReq<ActionResponse>(
+                        `/user/reply/${tid}`,
+                        {
+                          id: tid,
+                          text: textEl.value,
+                          username: author_details.username,
+                        }
+                      );
+                      if (resp.limit_exceeded) handleResponse("comment", true);
+                      rootEl.remove();
+                    }
+                  } catch (error) {
+                    console.error(error);
+                  }
+                });
+
+                formDiv.appendChild(formEl);
+              }
+
+              rootEl.appendChild(formDiv);
+            }
+
+            containerElReply.appendChild(rootEl);
+          }
+
+          replyLoader.css("display", "none");
+
+          document
+            .querySelector("a.refresh-commented")
+            .addEventListener("click", async () => {
+              try {
+                replyLoader.css("display", "block");
+                const randomArray = shuffle(tweetsToReply.length);
+
+                containerElReply
+                  .querySelectorAll(".swiper-slide")
+                  .forEach((x) => x.remove());
+
+                for (let i = 0; i < tweetsToReply.length; i++) {
+                  const tweet: TodoTweetObj = tweetsToReply[randomArray[i]];
+
+                  const { id: tid, text, created_at, author_details } = tweet;
+
+                  // creating tweet element
+                  const rootEl = document.createElement("div");
+                  rootEl.classList.add("swiper-slide");
+                  {
+                    const formDiv = document.createElement("div");
+                    formDiv.classList.add("form-block-twitter");
+                    formDiv.classList.add("w-form");
+                    {
+                      const formEl = document.createElement("form");
+                      formEl.classList.add("form-twitter");
+                      {
+                        const boxDiv = document.createElement("div");
+                        boxDiv.classList.add("form-card");
+                        {
+                          const authorDiv = document.createElement("div");
+                          authorDiv.classList.add("twitter-author");
+                          {
+                            const profileImg = document.createElement("img");
+                            profileImg.classList.add("twitter-author-image");
+                            profileImg.loading = "lazy";
+                            profileImg.src = author_details.profile_image_url;
+                            profileImg.alt = "";
+
+                            const colDiv = document.createElement("div");
+                            colDiv.classList.add("column");
+                            {
+                              const nameEl = document.createElement("div");
+                              nameEl.classList.add("name-text");
+                              nameEl.textContent = author_details.name;
+
+                              const handleEl = document.createElement("div");
+                              handleEl.classList.add("handle-text");
+                              handleEl.textContent = `@${author_details.username}`;
+
+                              colDiv.appendChild(nameEl);
+                              colDiv.appendChild(handleEl);
+                            }
+
+                            const iconDiv = document.createElement("img");
+                            iconDiv.classList.add("twitter-icon-image");
+                            iconDiv.sizes = "20px";
+                            iconDiv.loading = "lazy";
+                            iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
+                            iconDiv.src =
+                              "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
+
+                            authorDiv.appendChild(profileImg);
+                            authorDiv.appendChild(colDiv);
+                            authorDiv.appendChild(iconDiv);
+                          }
+
+                          const postDiv = document.createElement("div");
+                          postDiv.classList.add("overflow-block");
+                          {
+                            const postEl = document.createElement("p");
+                            postEl.classList.add("post-text");
+                            postEl.textContent = text;
+
+                            const oneImgDiv = document.createElement("div");
+                            oneImgDiv.classList.add("one-scenario-image");
+                            oneImgDiv.classList.add("hide");
+                            {
+                              const imgEl = document.createElement("img");
+                              imgEl.classList.add("cover-image");
+                              imgEl.loading = "lazy";
+                              imgEl.alt = "";
+
+                              oneImgDiv.appendChild(imgEl);
+                            }
+
+                            const twoImgDiv = document.createElement("div");
+                            twoImgDiv.classList.add("two-scenario-image-wrap");
+                            twoImgDiv.classList.add("hide");
+                            twoImgDiv.style.display = "none";
+                            {
+                              const imgDiv1 = document.createElement("div");
+                              imgDiv1.id =
+                                "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
+                              imgDiv1.classList.add("two-scenario-image");
+                              {
+                                const imgEl = document.createElement("img");
+                                imgEl.classList.add("cover-image");
+                                imgEl.loading = "lazy";
+                                imgEl.alt = "";
+
+                                imgDiv1.appendChild(imgEl);
+                              }
+
+                              const imgDiv2 = document.createElement("div");
+                              imgDiv2.id =
+                                "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                              imgDiv2.classList.add("two-scenario-image");
+                              {
+                                const imgEl = document.createElement("img");
+                                imgEl.classList.add("cover-image");
+                                imgEl.loading = "lazy";
+                                imgEl.alt = "";
+
+                                imgDiv2.appendChild(imgEl);
+                              }
+
+                              twoImgDiv.appendChild(imgDiv1);
+                              twoImgDiv.appendChild(imgDiv2);
+                            }
+
+                            const oneVidDiv = document.createElement("div");
+                            oneVidDiv.classList.add("w-video");
+                            oneVidDiv.classList.add("w-embed");
+                            oneVidDiv.classList.add("one-video");
+                            oneVidDiv.classList.add("hide");
+                            oneVidDiv.id =
+                              "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                            {
+                              const videoEl = document.createElement("video");
+                              videoEl.autoplay = false;
+
+                              oneVidDiv.appendChild(videoEl);
+                            }
+
+                            if (tweet.attachement_urls) {
+                              const urls = tweet.attachement_urls;
+                              const n = urls.length;
+                              if (n === 1) {
+                                oneImgDiv.classList.remove("hide");
+                                oneImgDiv.querySelector("img").src = urls[0];
+                              } else if (n == 2) {
+                                twoImgDiv.classList.remove("hide");
+                                twoImgDiv
+                                  .querySelectorAll("img")
+                                  .forEach((x, i) => (x.src = urls[i]));
+                              }
+                            }
+
+                            postDiv.appendChild(postEl);
+                            postDiv.appendChild(oneImgDiv);
+                            postDiv.appendChild(twoImgDiv);
+                            postDiv.appendChild(oneVidDiv);
+                          }
+
+                          const dateDiv = document.createElement("div");
+                          dateDiv.classList.add("date-text");
+                          {
+                            const timeEl = document.createElement("div");
+                            timeEl.classList.add("post-time");
+                            timeEl.textContent = created_at.time;
+
+                            const dotEl = document.createElement("div");
+                            dotEl.classList.add("span-dot");
+                            {
+                              const textEl = document.createTextNode(".");
+                              dotEl.appendChild(textEl);
+                            }
+
+                            const dateEl = document.createElement("div");
+                            dateEl.classList.add("post-date");
+                            dateEl.textContent = created_at.date;
+
+                            dateDiv.appendChild(timeEl);
+                            dateDiv.appendChild(dotEl);
+                            dateDiv.appendChild(dateEl);
+                          }
+
+                          const checkboxesContainer =
+                            document.createElement("div");
+                          checkboxesContainer.classList.add(
+                            "checkboxes-wrapper"
                           );
                           {
-                            const imgEl = document.createElement("img");
-                            imgEl.classList.add("cover-image");
-                            imgEl.src =
-                              "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62a1c558370c3e8bfb46546a_16x16%20input%20arrow.svg";
-                            imgEl.loading = "lazy";
-                            imgEl.alt = "";
+                            const replyContainer =
+                              document.createElement("div");
+                            replyContainer.classList.add("column");
+                            replyContainer.setAttribute(
+                              "data-w-id",
+                              "48652e03-98b1-c9e0-2cfc-1cf2558c7403"
+                            );
+                            {
+                              const replyLabel = document.createElement("div");
+                              replyLabel.classList.add("comment-checkbox");
+                              {
+                                const iconDiv = document.createElement("div");
+                                iconDiv.classList.add("comment-checkbox-check");
 
-                            xComment.appendChild(imgEl);
+                                const labelText = document.createElement("div");
+                                labelText.classList.add("checkbox-label-card");
+                                labelText.textContent = "Comment";
+
+                                replyLabel.appendChild(iconDiv);
+                                replyLabel.appendChild(labelText);
+                              }
+
+                              const replyError = document.createElement("div");
+                              replyError.classList.add("comment-error");
+                              replyError.classList.add("hide");
+                              replyError.textContent =
+                                "You've exceeded amount of tweets to be commented";
+
+                              replyContainer.appendChild(replyLabel);
+                              replyContainer.appendChild(replyError);
+                            }
+
+                            const replyInputContainer =
+                              document.createElement("div");
+                            replyInputContainer.classList.add(
+                              "comment-wrapper"
+                            );
+                            {
+                              const textEl = document.createElement("textarea");
+                              textEl.id = "field-2";
+                              textEl.classList.add("twitter-comment-input");
+                              textEl.classList.add("w-input");
+                              textEl.placeholder = "Your reply";
+                              textEl.maxLength = 5000;
+                              textEl.name = "field-2";
+                              textEl.setAttribute("data-name", "field");
+
+                              const xComment = document.createElement("div");
+                              xComment.classList.add("x-comment");
+                              xComment.setAttribute(
+                                "data-w-id",
+                                "7d49dde2-22af-3af3-4d2a-6779b7115ead"
+                              );
+                              {
+                                const imgEl = document.createElement("img");
+                                imgEl.classList.add("cover-image");
+                                imgEl.src =
+                                  "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62a1c558370c3e8bfb46546a_16x16%20input%20arrow.svg";
+                                imgEl.loading = "lazy";
+                                imgEl.alt = "";
+
+                                xComment.appendChild(imgEl);
+                              }
+
+                              replyInputContainer.appendChild(textEl);
+                              replyInputContainer.appendChild(xComment);
+                            }
+
+                            replyContainer.addEventListener(
+                              "click",
+                              async function () {
+                                const $this = $(replyInputContainer);
+                                $this.css("display", "flex");
+                                $this.addClass("active-comment-wrapper");
+                              }
+                            );
+                            replyInputContainer
+                              .querySelector(".x-comment")
+                              .addEventListener("click", async function () {
+                                const $this = $(replyInputContainer);
+                                $this.removeClass("active-comment-wrapper");
+                                setTimeout(
+                                  () => $this.css("display", "none"),
+                                  250
+                                );
+                              });
+
+                            checkboxesContainer.appendChild(replyContainer);
+                            checkboxesContainer.appendChild(
+                              replyInputContainer
+                            );
                           }
 
-                          replyInputContainer.appendChild(textEl);
-                          replyInputContainer.appendChild(xComment);
+                          const submitBtn = document.createElement("input");
+                          submitBtn.classList.add("submit-button");
+                          submitBtn.classList.add("w-button");
+                          submitBtn.setAttribute("type", "submit");
+                          submitBtn.setAttribute("data-wait", "Please wait...");
+                          submitBtn.value = "Submit";
+
+                          boxDiv.appendChild(authorDiv);
+                          boxDiv.appendChild(postDiv);
+                          boxDiv.appendChild(dateDiv);
+                          boxDiv.appendChild(checkboxesContainer);
+                          boxDiv.appendChild(submitBtn);
                         }
 
-                        replyContainer.addEventListener(
-                          "click",
-                          async function () {
-                            const $this = $(replyInputContainer);
-                            $this.css("display", "flex");
-                            $this.addClass("active-comment-wrapper");
-                          }
-                        );
-                        replyInputContainer
-                          .querySelector(".x-comment")
-                          .addEventListener("click", async function () {
-                            const $this = $(replyInputContainer);
-                            $this.removeClass("active-comment-wrapper");
-                            setTimeout(() => $this.css("display", "none"), 250);
-                          });
-
-                        checkboxesContainer.appendChild(replyContainer);
-                        checkboxesContainer.appendChild(replyInputContainer);
+                        formEl.appendChild(boxDiv);
                       }
 
-                      const submitBtn = document.createElement("input");
-                      submitBtn.classList.add("submit-button");
-                      submitBtn.classList.add("w-button");
-                      submitBtn.setAttribute("type", "submit");
-                      submitBtn.setAttribute("data-wait", "Please wait...");
-                      submitBtn.value = "Submit";
+                      formEl.addEventListener("submit", async function (ev) {
+                        ev.preventDefault();
+                        ev.stopImmediatePropagation();
+                        ev.stopPropagation();
+
+                        try {
+                          const textEl = formEl.querySelector("textarea");
+                          if (textEl.value) {
+                            const response =
+                              await apiCall.postReq<ActionResponse>(
+                                `/user/reply/${tid}`,
+                                {
+                                  id: tid,
+                                  text: textEl.value,
+                                }
+                              );
+                            if (response.limit_exceeded)
+                              handleResponse("commentd", true);
+                            rootEl.remove();
+                          }
+                        } catch (error) {
+                          console.error(error);
+                        }
+                      });
+
+                      formDiv.appendChild(formEl);
+                    }
+
+                    rootEl.appendChild(formDiv);
+                  }
+
+                  containerElReply.appendChild(rootEl);
+                }
+
+                replyLoader.css("display", "none");
+              } catch (error) {
+                console.error(error);
+              }
+            });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      // fetching tweets to retweet
+      {
+        try {
+          const {
+            tweets: tweetsToRetweet,
+            limit_exceeded: limit_exceeded_retweet,
+          } = await apiCall.getReq<GetTweetsResp>("/user/tweets/retweet");
+
+          const retweetLoader = $(document.getElementById("retweet-preloader"));
+          const containerElRetweet = document.getElementById("retweet-swiper");
+
+          if (limit_exceeded_retweet) handleResponse("retweet", true);
+
+          containerElRetweet
+            .querySelectorAll(".swiper-slide")
+            .forEach((x) => x.remove());
+
+          for (let i = 0; i < tweetsToRetweet.length; i++) {
+            const tweet: TodoTweetObj = tweetsToRetweet[i];
+
+            const { id: tid, text, created_at, author_details } = tweet;
+
+            // creating tweet element
+            const rootEl = document.createElement("div");
+            rootEl.classList.add("swiper-slide");
+            {
+              const formDiv = document.createElement("div");
+              formDiv.classList.add("form-block-twitter");
+              formDiv.classList.add("w-form");
+              {
+                const formEl = document.createElement("form");
+                formEl.classList.add("form-twitter");
+                {
+                  const boxDiv = document.createElement("div");
+                  boxDiv.classList.add("form-card");
+                  {
+                    const authorDiv = document.createElement("div");
+                    authorDiv.classList.add("twitter-author");
+                    {
+                      const profileImg = document.createElement("img");
+                      profileImg.classList.add("twitter-author-image");
+                      profileImg.loading = "lazy";
+                      profileImg.src = author_details.profile_image_url;
+                      profileImg.alt = "";
+
+                      const colDiv = document.createElement("div");
+                      colDiv.classList.add("column");
+                      {
+                        const nameEl = document.createElement("div");
+                        nameEl.classList.add("name-text");
+                        nameEl.textContent = author_details.name;
+
+                        const handleEl = document.createElement("div");
+                        handleEl.classList.add("handle-text");
+                        handleEl.textContent = `@${author_details.username}`;
+
+                        colDiv.appendChild(nameEl);
+                        colDiv.appendChild(handleEl);
+                      }
+
+                      const iconDiv = document.createElement("img");
+                      iconDiv.classList.add("twitter-icon-image");
+                      iconDiv.sizes = "20px";
+                      iconDiv.loading = "lazy";
+                      iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
+                      iconDiv.src =
+                        "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
+
+                      authorDiv.appendChild(profileImg);
+                      authorDiv.appendChild(colDiv);
+                      authorDiv.appendChild(iconDiv);
+                    }
+
+                    const postDiv = document.createElement("div");
+                    postDiv.classList.add("overflow-block");
+                    {
+                      const postEl = document.createElement("p");
+                      postEl.classList.add("post-text");
+                      postEl.textContent = text;
+
+                      const oneImgDiv = document.createElement("div");
+                      oneImgDiv.classList.add("one-scenario-image");
+                      oneImgDiv.classList.add("hide");
+                      {
+                        const imgEl = document.createElement("img");
+                        imgEl.classList.add("cover-image");
+                        imgEl.loading = "lazy";
+                        imgEl.alt = "";
+
+                        oneImgDiv.appendChild(imgEl);
+                      }
+
+                      const twoImgDiv = document.createElement("div");
+                      twoImgDiv.classList.add("two-scenario-image-wrap");
+                      twoImgDiv.classList.add("hide");
+                      twoImgDiv.style.display = "none";
+                      {
+                        const imgDiv1 = document.createElement("div");
+                        imgDiv1.id =
+                          "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
+                        imgDiv1.classList.add("two-scenario-image");
+                        {
+                          const imgEl = document.createElement("img");
+                          imgEl.classList.add("cover-image");
+                          imgEl.loading = "lazy";
+                          imgEl.alt = "";
+
+                          imgDiv1.appendChild(imgEl);
+                        }
+
+                        const imgDiv2 = document.createElement("div");
+                        imgDiv2.id =
+                          "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                        imgDiv2.classList.add("two-scenario-image");
+                        {
+                          const imgEl = document.createElement("img");
+                          imgEl.classList.add("cover-image");
+                          imgEl.loading = "lazy";
+                          imgEl.alt = "";
+
+                          imgDiv2.appendChild(imgEl);
+                        }
+
+                        twoImgDiv.appendChild(imgDiv1);
+                        twoImgDiv.appendChild(imgDiv2);
+                      }
+
+                      const oneVidDiv = document.createElement("div");
+                      oneVidDiv.classList.add("w-video");
+                      oneVidDiv.classList.add("w-embed");
+                      oneVidDiv.classList.add("one-video");
+                      oneVidDiv.classList.add("hide");
+                      oneVidDiv.id =
+                        "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                      {
+                        const videoEl = document.createElement("video");
+                        videoEl.autoplay = false;
+
+                        oneVidDiv.appendChild(videoEl);
+                      }
+
+                      if (tweet.attachement_urls) {
+                        const urls = tweet.attachement_urls;
+                        const n = urls.length;
+                        if (n === 1) {
+                          oneImgDiv.classList.remove("hide");
+                          oneImgDiv.querySelector("img").src = urls[0];
+                        } else if (n == 2) {
+                          twoImgDiv.classList.remove("hide");
+                          twoImgDiv
+                            .querySelectorAll("img")
+                            .forEach((x, i) => (x.src = urls[i]));
+                        }
+                      }
+
+                      postDiv.appendChild(postEl);
+                      postDiv.appendChild(oneImgDiv);
+                      postDiv.appendChild(twoImgDiv);
+                      postDiv.appendChild(oneVidDiv);
+                    }
+
+                    const dateDiv = document.createElement("div");
+                    dateDiv.classList.add("date-text");
+                    {
+                      const timeEl = document.createElement("div");
+                      timeEl.classList.add("post-time");
+                      timeEl.textContent = created_at.time;
+
+                      const dotEl = document.createElement("div");
+                      dotEl.classList.add("span-dot");
+                      {
+                        const textEl = document.createTextNode(".");
+                        dotEl.appendChild(textEl);
+                      }
+
+                      const dateEl = document.createElement("div");
+                      dateEl.classList.add("post-date");
+                      dateEl.textContent = created_at.date;
+
+                      dateDiv.appendChild(timeEl);
+                      dateDiv.appendChild(dotEl);
+                      dateDiv.appendChild(dateEl);
+                    }
+
+                    const checkboxesContainer = document.createElement("div");
+                    checkboxesContainer.classList.add("checkboxes-wrapper");
+                    {
+                      const retweetContainer = document.createElement("div");
+                      retweetContainer.classList.add("column");
+                      {
+                        const retweetError = document.createElement("div");
+                        retweetError.classList.add("retweet-error");
+                        retweetError.classList.add("hide");
+                        retweetError.textContent =
+                          "You've exceeded amount of tweets to be retweeted";
+
+                        const retweetLabel = document.createElement("label");
+                        retweetLabel.classList.add("w-checkbox");
+                        retweetLabel.classList.add("retweet-checkbox");
+                        {
+                          const iconDiv = document.createElement("div");
+                          iconDiv.classList.add("w-checkbox-input");
+                          iconDiv.classList.add(
+                            "w-checkbox-input--inputType-custom"
+                          );
+                          iconDiv.classList.add("retweet-checkbox-check");
+
+                          const inputEl = document.createElement("input");
+                          inputEl.id = "Retweet-Checkbox-2";
+                          inputEl.type = "checkbox";
+                          inputEl.setAttribute(
+                            "data-name",
+                            "Retweet Checkbox 2"
+                          );
+                          inputEl.style.position = "absolute";
+                          inputEl.style.opacity = "0";
+                          inputEl.style.zIndex = "-1";
+                          {
+                            inputEl.addEventListener("change", async () => {
+                              if (inputEl.checked) {
+                                try {
+                                  const resp =
+                                    await apiCall.getReq<ActionResponse>(
+                                      `/user/retweet/${tid}`
+                                    );
+                                  if (resp.limit_exceeded)
+                                    handleResponse("retweet", true);
+                                  rootEl.remove();
+                                } catch (error) {
+                                  console.error(error);
+                                }
+                              }
+                            });
+                          }
+
+                          const spanEl = document.createElement("span");
+                          spanEl.classList.add("w-form-label");
+                          spanEl.classList.add("checkbox-label-card");
+                          spanEl.setAttribute("for", "Retweet-Checkbox-2");
+                          spanEl.textContent = "Retweet";
+
+                          retweetLabel.appendChild(iconDiv);
+                          retweetLabel.appendChild(inputEl);
+                          retweetLabel.appendChild(spanEl);
+
+                          retweetContainer.appendChild(retweetLabel);
+                          retweetContainer.appendChild(retweetError);
+                        }
+
+                        checkboxesContainer.appendChild(retweetContainer);
+                      }
 
                       boxDiv.appendChild(authorDiv);
                       boxDiv.appendChild(postDiv);
                       boxDiv.appendChild(dateDiv);
                       boxDiv.appendChild(checkboxesContainer);
-                      boxDiv.appendChild(submitBtn);
                     }
 
                     formEl.appendChild(boxDiv);
                   }
-
-                  formEl.addEventListener("submit", async function (ev) {
-                    ev.preventDefault();
-                    ev.stopImmediatePropagation();
-                    ev.stopPropagation();
-
-                    try {
-                      const textEl = formEl.querySelector("textarea");
-                      if (textEl.value) {
-                        const response = await apiCall.postReq<ActionResponse>(
-                          `/user/reply/${tid}`,
-                          {
-                            id: tid,
-                            text: textEl.value,
-                          }
-                        );
-                        if (response.limit_exceeded)
-                          handleResponse("commentd", true);
-                        rootEl.remove();
-                      }
-                    } catch (error) {
-                      console.error(error);
-                    }
-                  });
 
                   formDiv.appendChild(formEl);
                 }
@@ -1844,556 +2152,301 @@ window.addEventListener("load", async () => {
                 rootEl.appendChild(formDiv);
               }
 
-              containerElReply.appendChild(rootEl);
+              containerElRetweet.appendChild(rootEl);
             }
-
-            replyLoader.css("display", "none");
-          } catch (error) {
-            console.error(error);
           }
-        });
 
-      // fetching tweets to retweet
+          retweetLoader.css("display", "none");
 
-      const {
-        tweets: tweetsToRetweet,
-        limit_exceeded: limit_exceeded_retweet,
-      } = await apiCall.getReq<GetTweetsResp>("/user/tweets/retweet");
+          document
+            .querySelector("a.refresh-retweeted")
+            .addEventListener("click", async () => {
+              try {
+                retweetLoader.css("display", "block");
+                const randomArray = shuffle(tweetsToRetweet.length);
 
-      const retweetLoader = $(document.getElementById("retweet-preloader"));
-      const containerElRetweet = document.getElementById("retweet-swiper");
+                const containerElRetweet =
+                  document.getElementById("retweet-swiper");
 
-      if (limit_exceeded_retweet) handleResponse("retweet", true);
+                containerElRetweet
+                  .querySelectorAll(".swiper-slide")
+                  .forEach((x) => x.remove());
 
-      containerElRetweet
-        .querySelectorAll(".swiper-slide")
-        .forEach((x) => x.remove());
+                for (let i = 0; i < tweetsToRetweet.length; i++) {
+                  const tweet: TodoTweetObj = tweetsToRetweet[randomArray[i]];
 
-      for (let i = 0; i < tweetsToRetweet.length; i++) {
-        const tweet: TodoTweetObj = tweetsToRetweet[i];
+                  const { id: tid, text, created_at, author_details } = tweet;
 
-        const { id: tid, text, created_at, author_details } = tweet;
-
-        // creating tweet element
-        const rootEl = document.createElement("div");
-        rootEl.classList.add("swiper-slide");
-        {
-          const formDiv = document.createElement("div");
-          formDiv.classList.add("form-block-twitter");
-          formDiv.classList.add("w-form");
-          {
-            const formEl = document.createElement("form");
-            formEl.classList.add("form-twitter");
-            {
-              const boxDiv = document.createElement("div");
-              boxDiv.classList.add("form-card");
-              {
-                const authorDiv = document.createElement("div");
-                authorDiv.classList.add("twitter-author");
-                {
-                  const profileImg = document.createElement("img");
-                  profileImg.classList.add("twitter-author-image");
-                  profileImg.loading = "lazy";
-                  profileImg.src = author_details.profile_image_url;
-                  profileImg.alt = "";
-
-                  const colDiv = document.createElement("div");
-                  colDiv.classList.add("column");
+                  // creating tweet element
+                  const rootEl = document.createElement("div");
+                  rootEl.classList.add("swiper-slide");
                   {
-                    const nameEl = document.createElement("div");
-                    nameEl.classList.add("name-text");
-                    nameEl.textContent = author_details.name;
-
-                    const handleEl = document.createElement("div");
-                    handleEl.classList.add("handle-text");
-                    handleEl.textContent = `@${author_details.username}`;
-
-                    colDiv.appendChild(nameEl);
-                    colDiv.appendChild(handleEl);
-                  }
-
-                  const iconDiv = document.createElement("img");
-                  iconDiv.classList.add("twitter-icon-image");
-                  iconDiv.sizes = "20px";
-                  iconDiv.loading = "lazy";
-                  iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
-                  iconDiv.src =
-                    "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
-
-                  authorDiv.appendChild(profileImg);
-                  authorDiv.appendChild(colDiv);
-                  authorDiv.appendChild(iconDiv);
-                }
-
-                const postDiv = document.createElement("div");
-                postDiv.classList.add("overflow-block");
-                {
-                  const postEl = document.createElement("p");
-                  postEl.classList.add("post-text");
-                  postEl.textContent = text;
-
-                  const oneImgDiv = document.createElement("div");
-                  oneImgDiv.classList.add("one-scenario-image");
-                  oneImgDiv.classList.add("hide");
-                  {
-                    const imgEl = document.createElement("img");
-                    imgEl.classList.add("cover-image");
-                    imgEl.loading = "lazy";
-                    imgEl.alt = "";
-
-                    oneImgDiv.appendChild(imgEl);
-                  }
-
-                  const twoImgDiv = document.createElement("div");
-                  twoImgDiv.classList.add("two-scenario-image-wrap");
-                  twoImgDiv.classList.add("hide");
-                  twoImgDiv.style.display = "none";
-                  {
-                    const imgDiv1 = document.createElement("div");
-                    imgDiv1.id =
-                      "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
-                    imgDiv1.classList.add("two-scenario-image");
+                    const formDiv = document.createElement("div");
+                    formDiv.classList.add("form-block-twitter");
+                    formDiv.classList.add("w-form");
                     {
-                      const imgEl = document.createElement("img");
-                      imgEl.classList.add("cover-image");
-                      imgEl.loading = "lazy";
-                      imgEl.alt = "";
-
-                      imgDiv1.appendChild(imgEl);
-                    }
-
-                    const imgDiv2 = document.createElement("div");
-                    imgDiv2.id =
-                      "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                    imgDiv2.classList.add("two-scenario-image");
-                    {
-                      const imgEl = document.createElement("img");
-                      imgEl.classList.add("cover-image");
-                      imgEl.loading = "lazy";
-                      imgEl.alt = "";
-
-                      imgDiv2.appendChild(imgEl);
-                    }
-
-                    twoImgDiv.appendChild(imgDiv1);
-                    twoImgDiv.appendChild(imgDiv2);
-                  }
-
-                  const oneVidDiv = document.createElement("div");
-                  oneVidDiv.classList.add("w-video");
-                  oneVidDiv.classList.add("w-embed");
-                  oneVidDiv.classList.add("one-video");
-                  oneVidDiv.classList.add("hide");
-                  oneVidDiv.id =
-                    "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                  {
-                    const videoEl = document.createElement("video");
-                    videoEl.autoplay = false;
-
-                    oneVidDiv.appendChild(videoEl);
-                  }
-
-                  if (tweet.attachement_urls) {
-                    const urls = tweet.attachement_urls;
-                    const n = urls.length;
-                    if (n === 1) {
-                      oneImgDiv.classList.remove("hide");
-                      oneImgDiv.querySelector("img").src = urls[0];
-                    } else if (n == 2) {
-                      twoImgDiv.classList.remove("hide");
-                      twoImgDiv
-                        .querySelectorAll("img")
-                        .forEach((x, i) => (x.src = urls[i]));
-                    }
-                  }
-
-                  postDiv.appendChild(postEl);
-                  postDiv.appendChild(oneImgDiv);
-                  postDiv.appendChild(twoImgDiv);
-                  postDiv.appendChild(oneVidDiv);
-                }
-
-                const dateDiv = document.createElement("div");
-                dateDiv.classList.add("date-text");
-                {
-                  const timeEl = document.createElement("div");
-                  timeEl.classList.add("post-time");
-                  timeEl.textContent = created_at.time;
-
-                  const dotEl = document.createElement("div");
-                  dotEl.classList.add("span-dot");
-                  {
-                    const textEl = document.createTextNode(".");
-                    dotEl.appendChild(textEl);
-                  }
-
-                  const dateEl = document.createElement("div");
-                  dateEl.classList.add("post-date");
-                  dateEl.textContent = created_at.date;
-
-                  dateDiv.appendChild(timeEl);
-                  dateDiv.appendChild(dotEl);
-                  dateDiv.appendChild(dateEl);
-                }
-
-                const checkboxesContainer = document.createElement("div");
-                checkboxesContainer.classList.add("checkboxes-wrapper");
-                {
-                  const retweetContainer = document.createElement("div");
-                  retweetContainer.classList.add("column");
-                  {
-                    const retweetError = document.createElement("div");
-                    retweetError.classList.add("retweet-error");
-                    retweetError.classList.add("hide");
-                    retweetError.textContent =
-                      "You've exceeded amount of tweets to be retweeted";
-
-                    const retweetLabel = document.createElement("label");
-                    retweetLabel.classList.add("w-checkbox");
-                    retweetLabel.classList.add("retweet-checkbox");
-                    {
-                      const iconDiv = document.createElement("div");
-                      iconDiv.classList.add("w-checkbox-input");
-                      iconDiv.classList.add(
-                        "w-checkbox-input--inputType-custom"
-                      );
-                      iconDiv.classList.add("retweet-checkbox-check");
-
-                      const inputEl = document.createElement("input");
-                      inputEl.id = "Retweet-Checkbox-2";
-                      inputEl.type = "checkbox";
-                      inputEl.setAttribute("data-name", "Retweet Checkbox 2");
-                      inputEl.style.position = "absolute";
-                      inputEl.style.opacity = "0";
-                      inputEl.style.zIndex = "-1";
+                      const formEl = document.createElement("form");
+                      formEl.classList.add("form-twitter");
                       {
-                        inputEl.addEventListener("change", async () => {
-                          if (inputEl.checked) {
-                            try {
-                              const resp = await apiCall.getReq<ActionResponse>(
-                                `/user/retweet/${tid}`
-                              );
-                              if (resp.limit_exceeded)
-                                handleResponse("retweet", true);
-                              rootEl.remove();
-                            } catch (error) {
-                              console.error(error);
+                        const boxDiv = document.createElement("div");
+                        boxDiv.classList.add("form-card");
+                        {
+                          const authorDiv = document.createElement("div");
+                          authorDiv.classList.add("twitter-author");
+                          {
+                            const profileImg = document.createElement("img");
+                            profileImg.classList.add("twitter-author-image");
+                            profileImg.loading = "lazy";
+                            profileImg.src = author_details.profile_image_url;
+                            profileImg.alt = "";
+
+                            const colDiv = document.createElement("div");
+                            colDiv.classList.add("column");
+                            {
+                              const nameEl = document.createElement("div");
+                              nameEl.classList.add("name-text");
+                              nameEl.textContent = author_details.name;
+
+                              const handleEl = document.createElement("div");
+                              handleEl.classList.add("handle-text");
+                              handleEl.textContent = `@${author_details.username}`;
+
+                              colDiv.appendChild(nameEl);
+                              colDiv.appendChild(handleEl);
                             }
+
+                            const iconDiv = document.createElement("img");
+                            iconDiv.classList.add("twitter-icon-image");
+                            iconDiv.sizes = "20px";
+                            iconDiv.loading = "lazy";
+                            iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
+                            iconDiv.src =
+                              "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
+
+                            authorDiv.appendChild(profileImg);
+                            authorDiv.appendChild(colDiv);
+                            authorDiv.appendChild(iconDiv);
                           }
-                        });
+
+                          const postDiv = document.createElement("div");
+                          postDiv.classList.add("overflow-block");
+                          {
+                            const postEl = document.createElement("p");
+                            postEl.classList.add("post-text");
+                            postEl.textContent = text;
+
+                            const oneImgDiv = document.createElement("div");
+                            oneImgDiv.classList.add("one-scenario-image");
+                            oneImgDiv.classList.add("hide");
+                            {
+                              const imgEl = document.createElement("img");
+                              imgEl.classList.add("cover-image");
+                              imgEl.loading = "lazy";
+                              imgEl.alt = "";
+
+                              oneImgDiv.appendChild(imgEl);
+                            }
+
+                            const twoImgDiv = document.createElement("div");
+                            twoImgDiv.classList.add("two-scenario-image-wrap");
+                            twoImgDiv.classList.add("hide");
+                            twoImgDiv.style.display = "none";
+                            {
+                              const imgDiv1 = document.createElement("div");
+                              imgDiv1.id =
+                                "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
+                              imgDiv1.classList.add("two-scenario-image");
+                              {
+                                const imgEl = document.createElement("img");
+                                imgEl.classList.add("cover-image");
+                                imgEl.loading = "lazy";
+                                imgEl.alt = "";
+
+                                imgDiv1.appendChild(imgEl);
+                              }
+
+                              const imgDiv2 = document.createElement("div");
+                              imgDiv2.id =
+                                "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                              imgDiv2.classList.add("two-scenario-image");
+                              {
+                                const imgEl = document.createElement("img");
+                                imgEl.classList.add("cover-image");
+                                imgEl.loading = "lazy";
+                                imgEl.alt = "";
+
+                                imgDiv2.appendChild(imgEl);
+                              }
+
+                              twoImgDiv.appendChild(imgDiv1);
+                              twoImgDiv.appendChild(imgDiv2);
+                            }
+
+                            const oneVidDiv = document.createElement("div");
+                            oneVidDiv.classList.add("w-video");
+                            oneVidDiv.classList.add("w-embed");
+                            oneVidDiv.classList.add("one-video");
+                            oneVidDiv.classList.add("hide");
+                            oneVidDiv.id =
+                              "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
+                            {
+                              const videoEl = document.createElement("video");
+                              videoEl.autoplay = false;
+
+                              oneVidDiv.appendChild(videoEl);
+                            }
+
+                            if (tweet.attachement_urls) {
+                              const urls = tweet.attachement_urls;
+                              const n = urls.length;
+                              if (n === 1) {
+                                oneImgDiv.classList.remove("hide");
+                                oneImgDiv.querySelector("img").src = urls[0];
+                              } else if (n == 2) {
+                                twoImgDiv.classList.remove("hide");
+                                twoImgDiv
+                                  .querySelectorAll("img")
+                                  .forEach((x, i) => (x.src = urls[i]));
+                              }
+                            }
+
+                            postDiv.appendChild(postEl);
+                            postDiv.appendChild(oneImgDiv);
+                            postDiv.appendChild(twoImgDiv);
+                            postDiv.appendChild(oneVidDiv);
+                          }
+
+                          const dateDiv = document.createElement("div");
+                          dateDiv.classList.add("date-text");
+                          {
+                            const timeEl = document.createElement("div");
+                            timeEl.classList.add("post-time");
+                            timeEl.textContent = created_at.time;
+
+                            const dotEl = document.createElement("div");
+                            dotEl.classList.add("span-dot");
+                            {
+                              const textEl = document.createTextNode(".");
+                              dotEl.appendChild(textEl);
+                            }
+
+                            const dateEl = document.createElement("div");
+                            dateEl.classList.add("post-date");
+                            dateEl.textContent = created_at.date;
+
+                            dateDiv.appendChild(timeEl);
+                            dateDiv.appendChild(dotEl);
+                            dateDiv.appendChild(dateEl);
+                          }
+
+                          const checkboxesContainer =
+                            document.createElement("div");
+                          checkboxesContainer.classList.add(
+                            "checkboxes-wrapper"
+                          );
+                          {
+                            const retweetContainer =
+                              document.createElement("div");
+                            retweetContainer.classList.add("column");
+                            {
+                              const retweetError =
+                                document.createElement("div");
+                              retweetError.classList.add("retweet-error");
+                              retweetError.classList.add("hide");
+                              retweetError.textContent =
+                                "You've exceeded amount of tweets to be retweeted";
+
+                              const retweetLabel =
+                                document.createElement("label");
+                              retweetLabel.classList.add("w-checkbox");
+                              retweetLabel.classList.add("retweet-checkbox");
+                              {
+                                const iconDiv = document.createElement("div");
+                                iconDiv.classList.add("w-checkbox-input");
+                                iconDiv.classList.add(
+                                  "w-checkbox-input--inputType-custom"
+                                );
+                                iconDiv.classList.add("retweet-checkbox-check");
+
+                                const inputEl = document.createElement("input");
+                                inputEl.id = "Retweet-Checkbox-2";
+                                inputEl.type = "checkbox";
+                                inputEl.setAttribute(
+                                  "data-name",
+                                  "Retweet Checkbox 2"
+                                );
+                                inputEl.style.position = "absolute";
+                                inputEl.style.opacity = "0";
+                                inputEl.style.zIndex = "-1";
+                                {
+                                  inputEl.addEventListener(
+                                    "change",
+                                    async () => {
+                                      if (inputEl.checked) {
+                                        try {
+                                          const resp =
+                                            await apiCall.getReq<ActionResponse>(
+                                              `/user/retweet/${tid}`
+                                            );
+                                          if (resp.limit_exceeded)
+                                            handleResponse("retweet", true);
+                                          rootEl.remove();
+                                        } catch (error) {
+                                          console.error(error);
+                                        }
+                                      }
+                                    }
+                                  );
+                                }
+
+                                const spanEl = document.createElement("span");
+                                spanEl.classList.add("w-form-label");
+                                spanEl.classList.add("checkbox-label-card");
+                                spanEl.setAttribute(
+                                  "for",
+                                  "Retweet-Checkbox-2"
+                                );
+                                spanEl.textContent = "Retweet";
+
+                                retweetLabel.appendChild(iconDiv);
+                                retweetLabel.appendChild(inputEl);
+                                retweetLabel.appendChild(spanEl);
+
+                                retweetContainer.appendChild(retweetLabel);
+                                retweetContainer.appendChild(retweetError);
+                              }
+
+                              checkboxesContainer.appendChild(retweetContainer);
+                            }
+
+                            boxDiv.appendChild(authorDiv);
+                            boxDiv.appendChild(postDiv);
+                            boxDiv.appendChild(dateDiv);
+                            boxDiv.appendChild(checkboxesContainer);
+                          }
+
+                          formEl.appendChild(boxDiv);
+                        }
+
+                        formDiv.appendChild(formEl);
                       }
 
-                      const spanEl = document.createElement("span");
-                      spanEl.classList.add("w-form-label");
-                      spanEl.classList.add("checkbox-label-card");
-                      spanEl.setAttribute("for", "Retweet-Checkbox-2");
-                      spanEl.textContent = "Retweet";
-
-                      retweetLabel.appendChild(iconDiv);
-                      retweetLabel.appendChild(inputEl);
-                      retweetLabel.appendChild(spanEl);
-
-                      retweetContainer.appendChild(retweetLabel);
-                      retweetContainer.appendChild(retweetError);
+                      rootEl.appendChild(formDiv);
                     }
 
-                    checkboxesContainer.appendChild(retweetContainer);
+                    containerElRetweet.appendChild(rootEl);
                   }
-
-                  boxDiv.appendChild(authorDiv);
-                  boxDiv.appendChild(postDiv);
-                  boxDiv.appendChild(dateDiv);
-                  boxDiv.appendChild(checkboxesContainer);
                 }
 
-                formEl.appendChild(boxDiv);
+                retweetLoader.css("display", "none");
+              } catch (error) {
+                console.error(error);
               }
-
-              formDiv.appendChild(formEl);
-            }
-
-            rootEl.appendChild(formDiv);
-          }
-
-          containerElRetweet.appendChild(rootEl);
+            });
+        } catch (error) {
+          console.error(error);
         }
       }
-
-      retweetLoader.css("display", "none");
-
-      document
-        .querySelector("a.refresh-retweeted")
-        .addEventListener("click", async () => {
-          try {
-            retweetLoader.css("display", "block");
-            const randomArray = shuffle(tweetsToRetweet.length);
-
-            const containerElRetweet =
-              document.getElementById("retweet-swiper");
-
-            containerElRetweet
-              .querySelectorAll(".swiper-slide")
-              .forEach((x) => x.remove());
-
-            for (let i = 0; i < tweetsToRetweet.length; i++) {
-              const tweet: TodoTweetObj = tweetsToRetweet[randomArray[i]];
-
-              const { id: tid, text, created_at, author_details } = tweet;
-
-              // creating tweet element
-              const rootEl = document.createElement("div");
-              rootEl.classList.add("swiper-slide");
-              {
-                const formDiv = document.createElement("div");
-                formDiv.classList.add("form-block-twitter");
-                formDiv.classList.add("w-form");
-                {
-                  const formEl = document.createElement("form");
-                  formEl.classList.add("form-twitter");
-                  {
-                    const boxDiv = document.createElement("div");
-                    boxDiv.classList.add("form-card");
-                    {
-                      const authorDiv = document.createElement("div");
-                      authorDiv.classList.add("twitter-author");
-                      {
-                        const profileImg = document.createElement("img");
-                        profileImg.classList.add("twitter-author-image");
-                        profileImg.loading = "lazy";
-                        profileImg.src = author_details.profile_image_url;
-                        profileImg.alt = "";
-
-                        const colDiv = document.createElement("div");
-                        colDiv.classList.add("column");
-                        {
-                          const nameEl = document.createElement("div");
-                          nameEl.classList.add("name-text");
-                          nameEl.textContent = author_details.name;
-
-                          const handleEl = document.createElement("div");
-                          handleEl.classList.add("handle-text");
-                          handleEl.textContent = `@${author_details.username}`;
-
-                          colDiv.appendChild(nameEl);
-                          colDiv.appendChild(handleEl);
-                        }
-
-                        const iconDiv = document.createElement("img");
-                        iconDiv.classList.add("twitter-icon-image");
-                        iconDiv.sizes = "20px";
-                        iconDiv.loading = "lazy";
-                        iconDiv.srcset = `https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-500.png 500w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon-p-800.png 800w, https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png 995w`;
-                        iconDiv.src =
-                          "https://global-uploads.webflow.com/62a1c558370c3e453e465451/62befb77c2a90e6b17d75ace_Twitter%20Icon.png";
-
-                        authorDiv.appendChild(profileImg);
-                        authorDiv.appendChild(colDiv);
-                        authorDiv.appendChild(iconDiv);
-                      }
-
-                      const postDiv = document.createElement("div");
-                      postDiv.classList.add("overflow-block");
-                      {
-                        const postEl = document.createElement("p");
-                        postEl.classList.add("post-text");
-                        postEl.textContent = text;
-
-                        const oneImgDiv = document.createElement("div");
-                        oneImgDiv.classList.add("one-scenario-image");
-                        oneImgDiv.classList.add("hide");
-                        {
-                          const imgEl = document.createElement("img");
-                          imgEl.classList.add("cover-image");
-                          imgEl.loading = "lazy";
-                          imgEl.alt = "";
-
-                          oneImgDiv.appendChild(imgEl);
-                        }
-
-                        const twoImgDiv = document.createElement("div");
-                        twoImgDiv.classList.add("two-scenario-image-wrap");
-                        twoImgDiv.classList.add("hide");
-                        twoImgDiv.style.display = "none";
-                        {
-                          const imgDiv1 = document.createElement("div");
-                          imgDiv1.id =
-                            "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda4-f41c99d7";
-                          imgDiv1.classList.add("two-scenario-image");
-                          {
-                            const imgEl = document.createElement("img");
-                            imgEl.classList.add("cover-image");
-                            imgEl.loading = "lazy";
-                            imgEl.alt = "";
-
-                            imgDiv1.appendChild(imgEl);
-                          }
-
-                          const imgDiv2 = document.createElement("div");
-                          imgDiv2.id =
-                            "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                          imgDiv2.classList.add("two-scenario-image");
-                          {
-                            const imgEl = document.createElement("img");
-                            imgEl.classList.add("cover-image");
-                            imgEl.loading = "lazy";
-                            imgEl.alt = "";
-
-                            imgDiv2.appendChild(imgEl);
-                          }
-
-                          twoImgDiv.appendChild(imgDiv1);
-                          twoImgDiv.appendChild(imgDiv2);
-                        }
-
-                        const oneVidDiv = document.createElement("div");
-                        oneVidDiv.classList.add("w-video");
-                        oneVidDiv.classList.add("w-embed");
-                        oneVidDiv.classList.add("one-video");
-                        oneVidDiv.classList.add("hide");
-                        oneVidDiv.id =
-                          "w-node-_01342ca9-9bfc-e451-5fe7-faf764cfcda6-f41c99d7";
-                        {
-                          const videoEl = document.createElement("video");
-                          videoEl.autoplay = false;
-
-                          oneVidDiv.appendChild(videoEl);
-                        }
-
-                        if (tweet.attachement_urls) {
-                          const urls = tweet.attachement_urls;
-                          const n = urls.length;
-                          if (n === 1) {
-                            oneImgDiv.classList.remove("hide");
-                            oneImgDiv.querySelector("img").src = urls[0];
-                          } else if (n == 2) {
-                            twoImgDiv.classList.remove("hide");
-                            twoImgDiv
-                              .querySelectorAll("img")
-                              .forEach((x, i) => (x.src = urls[i]));
-                          }
-                        }
-
-                        postDiv.appendChild(postEl);
-                        postDiv.appendChild(oneImgDiv);
-                        postDiv.appendChild(twoImgDiv);
-                        postDiv.appendChild(oneVidDiv);
-                      }
-
-                      const dateDiv = document.createElement("div");
-                      dateDiv.classList.add("date-text");
-                      {
-                        const timeEl = document.createElement("div");
-                        timeEl.classList.add("post-time");
-                        timeEl.textContent = created_at.time;
-
-                        const dotEl = document.createElement("div");
-                        dotEl.classList.add("span-dot");
-                        {
-                          const textEl = document.createTextNode(".");
-                          dotEl.appendChild(textEl);
-                        }
-
-                        const dateEl = document.createElement("div");
-                        dateEl.classList.add("post-date");
-                        dateEl.textContent = created_at.date;
-
-                        dateDiv.appendChild(timeEl);
-                        dateDiv.appendChild(dotEl);
-                        dateDiv.appendChild(dateEl);
-                      }
-
-                      const checkboxesContainer = document.createElement("div");
-                      checkboxesContainer.classList.add("checkboxes-wrapper");
-                      {
-                        const retweetContainer = document.createElement("div");
-                        retweetContainer.classList.add("column");
-                        {
-                          const retweetError = document.createElement("div");
-                          retweetError.classList.add("retweet-error");
-                          retweetError.classList.add("hide");
-                          retweetError.textContent =
-                            "You've exceeded amount of tweets to be retweeted";
-
-                          const retweetLabel = document.createElement("label");
-                          retweetLabel.classList.add("w-checkbox");
-                          retweetLabel.classList.add("retweet-checkbox");
-                          {
-                            const iconDiv = document.createElement("div");
-                            iconDiv.classList.add("w-checkbox-input");
-                            iconDiv.classList.add(
-                              "w-checkbox-input--inputType-custom"
-                            );
-                            iconDiv.classList.add("retweet-checkbox-check");
-
-                            const inputEl = document.createElement("input");
-                            inputEl.id = "Retweet-Checkbox-2";
-                            inputEl.type = "checkbox";
-                            inputEl.setAttribute(
-                              "data-name",
-                              "Retweet Checkbox 2"
-                            );
-                            inputEl.style.position = "absolute";
-                            inputEl.style.opacity = "0";
-                            inputEl.style.zIndex = "-1";
-                            {
-                              inputEl.addEventListener("change", async () => {
-                                if (inputEl.checked) {
-                                  try {
-                                    const resp =
-                                      await apiCall.getReq<ActionResponse>(
-                                        `/user/retweet/${tid}`
-                                      );
-                                    if (resp.limit_exceeded)
-                                      handleResponse("retweet", true);
-                                    rootEl.remove();
-                                  } catch (error) {
-                                    console.error(error);
-                                  }
-                                }
-                              });
-                            }
-
-                            const spanEl = document.createElement("span");
-                            spanEl.classList.add("w-form-label");
-                            spanEl.classList.add("checkbox-label-card");
-                            spanEl.setAttribute("for", "Retweet-Checkbox-2");
-                            spanEl.textContent = "Retweet";
-
-                            retweetLabel.appendChild(iconDiv);
-                            retweetLabel.appendChild(inputEl);
-                            retweetLabel.appendChild(spanEl);
-
-                            retweetContainer.appendChild(retweetLabel);
-                            retweetContainer.appendChild(retweetError);
-                          }
-
-                          checkboxesContainer.appendChild(retweetContainer);
-                        }
-
-                        boxDiv.appendChild(authorDiv);
-                        boxDiv.appendChild(postDiv);
-                        boxDiv.appendChild(dateDiv);
-                        boxDiv.appendChild(checkboxesContainer);
-                      }
-
-                      formEl.appendChild(boxDiv);
-                    }
-
-                    formDiv.appendChild(formEl);
-                  }
-
-                  rootEl.appendChild(formDiv);
-                }
-
-                containerElRetweet.appendChild(rootEl);
-              }
-            }
-
-            retweetLoader.css("display", "none");
-          } catch (error) {
-            console.error(error);
-          }
-        });
     }
   } catch (error) {
     console.error(error);
