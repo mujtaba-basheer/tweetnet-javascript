@@ -39,6 +39,7 @@ function returnPromise(file: string): Promise<null> {
 
 for (const file of filesToUpload) {
   (async () => {
+    /*
     const inputCode = fs.readFileSync(`dist/${file}.js`, {
       encoding: "utf8",
     });
@@ -46,6 +47,7 @@ for (const file of filesToUpload) {
     fs.writeFileSync(`build/${file}.min.js`, outputCode, {
       encoding: "utf8",
     });
+    */
     await returnPromise(file + ".min");
   })();
 }

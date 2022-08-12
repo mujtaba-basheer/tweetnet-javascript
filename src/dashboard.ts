@@ -1509,6 +1509,7 @@ window.addEventListener("load", async () => {
                     {
                       id: tid,
                       text: textEl.value,
+                      username: author_details.username
                     }
                   );
                   if (resp.limit_exceeded) handleResponse("comment", true);

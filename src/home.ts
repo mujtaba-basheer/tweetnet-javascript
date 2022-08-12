@@ -57,7 +57,7 @@ window.addEventListener("load", () => {
           else {
             // getting auth url
             const req = await fetch(
-              "https://api.tweetnest.io/api/auth/authorize"
+              "https://api.tweetnest.io/apiV1/auth/authorize"
             );
 
             type AuthUrlResponse = {

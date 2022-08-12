@@ -4,21 +4,21 @@ var MemberStack: IMemberStack =
 window.addEventListener("load", async () => {
   try {
     const sp = new URLSearchParams(window.location.search);
-    const code = sp.get("code");
-    const state = sp.get("state");
+    const oauth_token = sp.get("oauth_token");
+    const oauth_verifier = sp.get("oauth_verifier");
 
-    const member = await MemberStack.onReady;
-    if (member.loggedIn && state && code) {
+    let member = await MemberStack.onReady;
+    if (member.loggedIn && oauth_token && oauth_verifier) {
       const mid = member.id;
 
-      const req = await fetch("https://api.tweetnest.io/api/auth/token", {
+      const req = await fetch("https://api.tweetnest.io/apiV1/auth/token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          state,
-          code,
+          oauth_token,
+          oauth_verifier,
           mid,
         }),
       });
@@ -33,7 +33,7 @@ window.addEventListener("load", async () => {
       if (resp.status) {
         localStorage.setItem("token", JSON.stringify(resp.data));
         window.location.href = `https://tweetnest.io/member/${mid}`;
-      } else throw new Error();
+      } else throw new Error(resp.message);
     }
   } catch (error) {
     console.error(error);

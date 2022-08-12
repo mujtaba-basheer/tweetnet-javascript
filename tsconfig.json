@@ -6,7 +6,7 @@
     "skipLibCheck": true,
     "moduleResolution": "Node",
     "newLine": "lf",
-    "lib": ["DOM"]
+    "lib": ["DOM", "ES2017"]
   },
   "include": ["src/*"],
   "exclude": ["node_modules"]
