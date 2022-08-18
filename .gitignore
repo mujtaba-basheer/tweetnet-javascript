@@ -1,6 +1,4 @@
-dist/
 node_modules/
-build/
 script.js
 .env
 package-lock.json
