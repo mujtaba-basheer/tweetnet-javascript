@@ -299,7 +299,7 @@ window.addEventListener("load", async () => {
                 {
                   const postEl = document.createElement("p");
                   postEl.classList.add("post-text");
-                  postEl.textContent = text;
+                  postEl.innerHTML = text;
 
                   const oneImgDiv = document.createElement("div");
                   oneImgDiv.classList.add("one-scenario-image");
@@ -753,7 +753,7 @@ window.addEventListener("load", async () => {
                     {
                       const postEl = document.createElement("p");
                       postEl.classList.add("post-text");
-                      postEl.textContent = text;
+                      postEl.innerHTML = text;
 
                       const oneImgDiv = document.createElement("div");
                       oneImgDiv.classList.add("one-scenario-image");
@@ -1017,7 +1017,7 @@ window.addEventListener("load", async () => {
                           {
                             const postEl = document.createElement("p");
                             postEl.classList.add("post-text");
-                            postEl.textContent = text;
+                            postEl.innerHTML = text;
 
                             const oneImgDiv = document.createElement("div");
                             oneImgDiv.classList.add("one-scenario-image");
@@ -1302,7 +1302,7 @@ window.addEventListener("load", async () => {
                     {
                       const postEl = document.createElement("p");
                       postEl.classList.add("post-text");
-                      postEl.textContent = text;
+                      postEl.innerHTML = text;
 
                       const oneImgDiv = document.createElement("div");
                       oneImgDiv.classList.add("one-scenario-image");
@@ -1619,7 +1619,7 @@ window.addEventListener("load", async () => {
                           {
                             const postEl = document.createElement("p");
                             postEl.classList.add("post-text");
-                            postEl.textContent = text;
+                            postEl.innerHTML = text;
 
                             const oneImgDiv = document.createElement("div");
                             oneImgDiv.classList.add("one-scenario-image");
@@ -1963,7 +1963,7 @@ window.addEventListener("load", async () => {
                     {
                       const postEl = document.createElement("p");
                       postEl.classList.add("post-text");
-                      postEl.textContent = text;
+                      postEl.innerHTML = text;
 
                       const oneImgDiv = document.createElement("div");
                       oneImgDiv.classList.add("one-scenario-image");
@@ -2233,7 +2233,7 @@ window.addEventListener("load", async () => {
                           {
                             const postEl = document.createElement("p");
                             postEl.classList.add("post-text");
-                            postEl.textContent = text;
+                            postEl.innerHTML = text;
 
                             const oneImgDiv = document.createElement("div");
                             oneImgDiv.classList.add("one-scenario-image");
