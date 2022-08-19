@@ -36,6 +36,7 @@ window.addEventListener("load", async () => {
       } else throw new Error(resp.message);
     }
   } catch (error) {
+    alert(error.message);
     console.error(error);
   }
 });

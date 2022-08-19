@@ -19,6 +19,7 @@ window.addEventListener("load", async () => {
         }
     }
     catch (error) {
+        alert(error.message);
         console.error(error);
     }
 });

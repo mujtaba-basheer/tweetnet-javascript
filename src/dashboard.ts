@@ -87,15 +87,15 @@ class ApiCall implements IApiCall {
         const resp: RespProto = await req.json();
 
         if (resp.status) return resolve(resp.data as T);
-        else if (req.status === 403) {
-          try {
-            await this.refreshToken();
-            return resolve(await this.getReq(path));
-          } catch (error) {
-            console.error(error);
-            window.location.pathname = "/";
-          }
-        }
+        // else if (req.status === 403) {
+        //   try {
+        //     await this.refreshToken();
+        //     return resolve(await this.getReq(path));
+        //   } catch (error) {
+        //     console.error(error);
+        //     window.location.pathname = "/";
+        //   }
+        // }
         throw new Error(resp.message);
       } catch (error) {
         reject(error);
@@ -117,14 +117,14 @@ class ApiCall implements IApiCall {
         const resp: RespProto = await req.json();
 
         if (resp.status) return resolve(resp.data as T);
-        else if (req.status === 403) {
-          try {
-            await this.refreshToken();
-            return resolve(await this.postReq(path, body));
-          } catch (error) {
-            window.location.pathname = "/";
-          }
-        }
+        // else if (req.status === 403) {
+        //   try {
+        //     await this.refreshToken();
+        //     return resolve(await this.postReq(path, body));
+        //   } catch (error) {
+        //     window.location.pathname = "/";
+        //   }
+        // }
         throw new Error(resp.message);
       } catch (error) {
         reject(error);
