@@ -133,6 +133,7 @@ const handleResponse = (task, limit_exceeded) => {
     }
 };
 window.addEventListener("load", async () => {
+    return console.log("here");
     try {
         const apiCall = new ApiCall();
         // LOGOUT
