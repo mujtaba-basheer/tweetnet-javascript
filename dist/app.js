@@ -11,7 +11,7 @@ const creds = new AWS.Credentials({
     secretAccessKey: (_b = process.env) === null || _b === void 0 ? void 0 : _b.S3SecretAccessKey,
 });
 const S3 = new AWS.S3({ credentials: creds });
-const filesToUpload = ["callback", "thank-you", "dashboard"];
+const filesToUpload = ["thank-you", "callback", "dashboard"];
 function returnPromise(file) {
     return new Promise((res, rej) => {
         S3.upload({

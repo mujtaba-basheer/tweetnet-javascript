@@ -12,7 +12,7 @@ const creds = new AWS.Credentials({
 
 const S3 = new AWS.S3({ credentials: creds });
 
-const filesToUpload: string[] = ["callback", "thank-you", "dashboard"];
+const filesToUpload: string[] = ["thank-you", "callback", "dashboard"];
 
 function returnPromise(file: string): Promise<null> {
   return new Promise((res, rej) => {
