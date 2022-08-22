@@ -18,7 +18,7 @@ function returnPromise(file: string): Promise<null> {
   return new Promise((res, rej) => {
     S3.upload(
       {
-        Bucket: "flow-ninja-assets",
+        Bucket: "tweetnest-scripts",
         Key: `tweetnest/${file}.js`,
         Body: fs.createReadStream(`build/${file}.js`),
         ACL: "public-read",
