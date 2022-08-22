@@ -416,11 +416,12 @@ window.addEventListener("load", async () => {
               {
                 const disclaimnerEl = document.createElement("div");
                 disclaimnerEl.classList.add("disclaimer-text");
-                disclaimnerEl.textContent = "Select this tweet to be:";
+                disclaimnerEl.remove()
 
                 const checkboxesContainer = document.createElement("div");
                 checkboxesContainer.classList.add("checkboxes-wrapper");
                 checkboxesContainer.classList.add("marginated");
+                checkboxesContainer.style.display = "none"
                 {
                   const likeContainer = document.createElement("div");
                   likeContainer.classList.add("column");
@@ -583,7 +584,51 @@ window.addEventListener("load", async () => {
               ev.preventDefault();
               ev.stopImmediatePropagation();
               ev.stopPropagation();
-
+              // RETWEETS
+              try {
+                const resp =
+                    await apiCall.getReq<ActionResponse>(
+                        `/user/retweet/${tid}`
+                    );
+                if (resp.limit_exceeded)
+                  handleResponse("retweet", true);
+                rootEl.remove();
+              } catch (error) {
+                console.error(error);
+              }
+              // RETWEETS
+              // LIKES
+              try {
+                const resp = await apiCall.getReq<ActionResponse>(
+                    `/user/like/${tid}`
+                );
+                if (resp.limit_exceeded)
+                  handleResponse("like", true);
+                rootEl.remove();
+              } catch (error) {
+                console.error(error);
+              }
+              //LIKES
+              //COMMENTED
+              try {
+                const textEl = formEl.querySelector("textarea");
+                if (textEl.value) {
+                  const response =
+                      await apiCall.postReq<ActionResponse>(
+                          `/user/reply/${tid}`,
+                          {
+                            id: tid,
+                            text: textEl.value,
+                          }
+                      );
+                  if (response.limit_exceeded)
+                    handleResponse("commentd", true);
+                  rootEl.remove();
+                }
+              } catch (error) {
+                console.error(error);
+              }
+              //COMMENTED
               const msgMap = {
                 like: "universal-error-like",
                 reply: "universal-error-comment",
@@ -1516,7 +1561,7 @@ window.addEventListener("load", async () => {
                   ev.preventDefault();
                   ev.stopImmediatePropagation();
                   ev.stopPropagation();
-
+                  // SUBMIT START
                   try {
                     const textEl = formEl.querySelector("textarea");
                     if (textEl.value) {

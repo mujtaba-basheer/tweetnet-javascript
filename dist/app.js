@@ -15,7 +15,7 @@ const filesToUpload = ["thank-you", "callback", "dashboard"];
 function returnPromise(file) {
     return new Promise((res, rej) => {
         S3.upload({
-            Bucket: "flow-ninja-assets",
+            Bucket: "tweetnest-scripts",
             Key: `tweetnest/${file}.js`,
             Body: fs.createReadStream(`build/${file}.js`),
             ACL: "public-read",
