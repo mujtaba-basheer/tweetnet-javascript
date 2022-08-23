@@ -133,7 +133,6 @@ const handleResponse = (task, limit_exceeded) => {
     }
 };
 window.addEventListener("load", async () => {
-    return console.log("here");
     try {
         const apiCall = new ApiCall();
         // LOGOUT
@@ -317,10 +316,11 @@ window.addEventListener("load", async () => {
                                 const checkboxesContainer = document.createElement("div");
                                 checkboxesContainer.classList.add("checkboxes-wrapper");
                                 checkboxesContainer.classList.add("marginated");
-                                checkboxesContainer.style.display = "none";
+                                // checkboxesContainer.style.display = "none"
                                 {
                                     const likeContainer = document.createElement("div");
                                     likeContainer.classList.add("column");
+                                    likeContainer.style.display = "none";
                                     {
                                         const likeLabel = document.createElement("label");
                                         likeLabel.classList.add("w-checkbox");
@@ -350,6 +350,7 @@ window.addEventListener("load", async () => {
                                     }
                                     const replyContainer = document.createElement("div");
                                     replyContainer.classList.add("column");
+                                    replyContainer.style.display = "none";
                                     {
                                         const replyLabel = document.createElement("label");
                                         replyLabel.classList.add("w-checkbox");
@@ -379,6 +380,7 @@ window.addEventListener("load", async () => {
                                     }
                                     const retweetContainer = document.createElement("div");
                                     retweetContainer.classList.add("column");
+                                    retweetContainer.style.display = "none";
                                     {
                                         const retweetLabel = document.createElement("label");
                                         retweetLabel.classList.add("w-checkbox");
@@ -446,105 +448,107 @@ window.addEventListener("load", async () => {
                             }
                             formEl.appendChild(boxDiv);
                             formEl.appendChild(bottomDiv);
-                        }
-                        formEl.addEventListener("submit", async function (ev) {
-                            ev.preventDefault();
-                            ev.stopImmediatePropagation();
-                            ev.stopPropagation();
-                            // RETWEETS
-                            try {
-                                const resp = await apiCall.getReq(`/user/retweet/${tid}`);
-                                if (resp.limit_exceeded)
-                                    handleResponse("retweet", true);
-                                rootEl.remove();
-                            }
-                            catch (error) {
-                                console.error(error);
-                            }
-                            // RETWEETS
-                            // LIKES
-                            try {
-                                const resp = await apiCall.getReq(`/user/like/${tid}`);
-                                if (resp.limit_exceeded)
-                                    handleResponse("like", true);
-                                rootEl.remove();
-                            }
-                            catch (error) {
-                                console.error(error);
-                            }
-                            //LIKES
-                            //COMMENTED
-                            try {
-                                const textEl = formEl.querySelector("textarea");
-                                if (textEl.value) {
-                                    const response = await apiCall.postReq(`/user/reply/${tid}`, {
-                                        id: tid,
-                                        text: textEl.value,
-                                    });
-                                    if (response.limit_exceeded)
-                                        handleResponse("commentd", true);
-                                    rootEl.remove();
+                            formEl.addEventListener("submit", async function (ev) {
+                                ev.preventDefault();
+                                ev.stopImmediatePropagation();
+                                ev.stopPropagation();
+                                // RETWEETS
+                                try {
+                                    const retweets = await apiCall.getReq(`/user/retweet/${tid}`);
+                                    if (retweets.limit_exceeded)
+                                        handleResponse("retweet", true);
+                                    // rootEl.remove();
                                 }
-                            }
-                            catch (error) {
-                                console.error(error);
-                            }
-                            //COMMENTED
-                            const msgMap = {
-                                like: "universal-error-like",
-                                reply: "universal-error-comment",
-                                retweet: "universal-error-retweet",
-                            };
-                            const inputs = [
-                                {
-                                    tag: "like",
-                                    query: "#Loike-Checkbox-2",
-                                },
-                                {
-                                    tag: "reply",
-                                    query: "#Comment-Checkbox-2",
-                                },
-                                {
-                                    tag: "retweet",
-                                    query: "#Retweet-Checkbox-2",
-                                },
-                            ];
-                            const successEl = formEl.querySelector(".success-text");
-                            Object.keys(msgMap).forEach((x) => formEl.querySelector(`.${msgMap[x]}`).classList.add("hide"));
-                            successEl.classList.add("hide");
-                            const tasks = [];
-                            for (const input of inputs) {
-                                const inputEl = this.querySelector(input.query);
-                                if (inputEl.checked)
-                                    tasks.push(input.tag);
-                            }
-                            try {
-                                const resp = await apiCall.postReq("/user/forward-tweets", {
-                                    id: tid,
-                                    tasks,
-                                });
-                                const { messages, limit_exceeded } = resp;
-                                let flag = true;
-                                messages.forEach((x) => {
-                                    const msgEl = formEl.querySelector(`.${msgMap[x.tag]}`);
-                                    if (msgEl && !x.status) {
-                                        msgEl.classList.remove("hide");
-                                        setTimeout(() => msgEl.classList.add("hide"), 3000);
-                                        flag = false;
+                                catch (error) {
+                                    console.error(error);
+                                }
+                                // RETWEETS
+                                // LIKES
+                                try {
+                                    const likes = await apiCall.getReq(`/user/like/${tid}`);
+                                    if (likes.limit_exceeded)
+                                        handleResponse("like", true);
+                                    // rootEl.remove();
+                                }
+                                catch (error) {
+                                    console.error(error);
+                                }
+                                //LIKES
+                                //COMMENTED
+                                try {
+                                    const textEl = formEl.querySelector("textarea");
+                                    if (textEl.value) {
+                                        const response = await apiCall.postReq(`/user/reply/${tid}`, {
+                                            id: tid,
+                                            text: textEl.value,
+                                        });
+                                        if (response.limit_exceeded)
+                                            handleResponse("commentd", true);
+                                        // rootEl.remove();
                                     }
-                                });
-                                if (flag) {
-                                    successEl.classList.remove("hide");
-                                    setTimeout(() => successEl.classList.add("hide"), 3000);
                                 }
-                                if (limit_exceeded) {
-                                    setTimeout(() => handleResponse("your", true), 3000);
+                                catch (error) {
+                                    console.error(error);
                                 }
-                            }
-                            catch (error) {
-                                console.error(error);
-                            }
-                        });
+                                //COMMENTED
+                                const msgMap = {
+                                    like: "universal-error-like",
+                                    reply: "universal-error-comment",
+                                    retweet: "universal-error-retweet",
+                                };
+                                const inputs = [
+                                    {
+                                        tag: "like",
+                                        query: "#Loike-Checkbox-2",
+                                    },
+                                    {
+                                        tag: "reply",
+                                        query: "#Comment-Checkbox-2",
+                                    },
+                                    {
+                                        tag: "retweet",
+                                        query: "#Retweet-Checkbox-2",
+                                    },
+                                ];
+                                const successEl = formEl.querySelector(".success-text");
+                                Object.keys(msgMap).forEach((x) => formEl.querySelector(`.${msgMap[x]}`).classList.add("hide"));
+                                successEl.classList.add("hide");
+                                const tasks = ["like", "reply", "retweet"];
+                                // for (const input of inputs) {
+                                //   const inputEl = this.querySelector<HTMLInputElement>(
+                                //     input.query
+                                //   );
+                                //   if (inputEl.checked)
+                                //   tasks.push(input.tag);
+                                // }
+                                try {
+                                    const resp = await apiCall.postReq("/user/forward-tweets", {
+                                        id: tid,
+                                        tasks,
+                                    });
+                                    const { messages, limit_exceeded } = resp;
+                                    let flag = true;
+                                    messages.forEach((x) => {
+                                        const msgEl = formEl.querySelector(`.${msgMap[x.tag]}`);
+                                        if (msgEl && !x.status) {
+                                            msgEl.classList.remove("hide");
+                                            setTimeout(() => msgEl.classList.add("hide"), 3000);
+                                            flag = false;
+                                        }
+                                    });
+                                    if (flag) {
+                                        successEl.classList.remove("hide");
+                                        setTimeout(() => successEl.classList.add("hide"), 3000);
+                                    }
+                                    if (limit_exceeded) {
+                                        setTimeout(() => handleResponse("your", true), 3000);
+                                    }
+                                }
+                                catch (error) {
+                                    console.error(error);
+                                }
+                            });
+                        }
                         formDiv.appendChild(formEl);
                     }
                     rootEl.appendChild(formDiv);
