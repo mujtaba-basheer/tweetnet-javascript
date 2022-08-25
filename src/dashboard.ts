@@ -593,7 +593,6 @@ window.addEventListener("load", async () => {
                       );
                   if (retweets.limit_exceeded)
                     handleResponse("retweet", true);
-                  // rootEl.remove();
                 } catch (error) {
                   console.error(error);
                 }
@@ -771,13 +770,13 @@ window.addEventListener("load", async () => {
                     for (const tweet of tweetsToLike) {
                       if (inputEl.checked) {
                         try {
+                          likeButtonContainer.remove();
                           const resp =
                               await apiCall.getReq<ActionResponse>(
                                   `/user/like/${tweet.id}`
                               );
                           if (resp.limit_exceeded)
                             handleResponse("like", true);
-                          likeButtonContainer.remove();
                         } catch (error) {
                           console.error(error);
                         }
@@ -1014,13 +1013,13 @@ window.addEventListener("load", async () => {
                             inputEl.addEventListener("change", async () => {
                               if (inputEl.checked) {
                                 try {
+                                  rootEl.remove();
                                   const resp =
                                     await apiCall.getReq<ActionResponse>(
                                       `/user/like/${tid}`
                                     );
                                   if (resp.limit_exceeded)
                                     handleResponse("like", true);
-                                  rootEl.remove();
                                 } catch (error) {
                                   console.error(error);
                                 }
@@ -1647,6 +1646,7 @@ window.addEventListener("load", async () => {
                   try {
                     const textEl = formEl.querySelector("textarea");
                     if (textEl.value) {
+                      rootEl.remove();
                       const resp = await apiCall.postReq<ActionResponse>(
                         `/user/reply/${tid}`,
                         {
@@ -1656,7 +1656,6 @@ window.addEventListener("load", async () => {
                         }
                       );
                       if (resp.limit_exceeded) handleResponse("comment", true);
-                      rootEl.remove();
                     }
                   } catch (error) {
                     console.error(error);
@@ -2023,7 +2022,9 @@ window.addEventListener("load", async () => {
           const retweetLoader = $(document.getElementById("retweet-preloader"));
           const containerElRetweet = document.getElementById("retweet-swiper");
 
-          if (limit_exceeded_retweet) handleResponse("retweet", true);
+          if (limit_exceeded_retweet) {
+            handleResponse("retweet", true);
+          }
 
           containerElRetweet
             .querySelectorAll(".swiper-slide")
@@ -2232,6 +2233,7 @@ window.addEventListener("load", async () => {
                           {
                             inputEl.addEventListener("change", async () => {
                               if (inputEl.checked) {
+                                rootEl.remove();
                                 try {
                                   const resp =
                                     await apiCall.getReq<ActionResponse>(
@@ -2239,7 +2241,6 @@ window.addEventListener("load", async () => {
                                     );
                                   if (resp.limit_exceeded)
                                     handleResponse("retweet", true);
-                                  rootEl.remove();
                                 } catch (error) {
                                   console.error(error);
                                 }
