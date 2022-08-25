@@ -268,6 +268,7 @@ window.addEventListener("load", async () => {
 
                   const colDiv = document.createElement("div");
                   colDiv.classList.add("column");
+                  colDiv.style.width = "100%";
                   {
                     const nameEl = document.createElement("div");
                     nameEl.classList.add("name-text");
@@ -848,6 +849,7 @@ window.addEventListener("load", async () => {
 
                       const colDiv = document.createElement("div");
                       colDiv.classList.add("column");
+                      colDiv.style.width = "100%";
                       {
                         const nameEl = document.createElement("div");
                         nameEl.classList.add("name-text");
@@ -1112,6 +1114,7 @@ window.addEventListener("load", async () => {
 
                             const colDiv = document.createElement("div");
                             colDiv.classList.add("column");
+                            colDiv.style.width = "100%";
                             {
                               const nameEl = document.createElement("div");
                               nameEl.classList.add("name-text");
@@ -1397,6 +1400,7 @@ window.addEventListener("load", async () => {
 
                       const colDiv = document.createElement("div");
                       colDiv.classList.add("column");
+                      colDiv.style.width = "100%";
                       {
                         const nameEl = document.createElement("div");
                         nameEl.classList.add("name-text");
@@ -1714,6 +1718,7 @@ window.addEventListener("load", async () => {
 
                             const colDiv = document.createElement("div");
                             colDiv.classList.add("column");
+                            colDiv.style.width = "100%";
                             {
                               const nameEl = document.createElement("div");
                               nameEl.classList.add("name-text");
@@ -2060,6 +2065,7 @@ window.addEventListener("load", async () => {
 
                       const colDiv = document.createElement("div");
                       colDiv.classList.add("column");
+                      colDiv.style.width = "100%";
                       {
                         const nameEl = document.createElement("div");
                         nameEl.classList.add("name-text");
@@ -2330,6 +2336,7 @@ window.addEventListener("load", async () => {
 
                             const colDiv = document.createElement("div");
                             colDiv.classList.add("column");
+                            colDiv.style.width = "100%";
                             {
                               const nameEl = document.createElement("div");
                               nameEl.classList.add("name-text");
