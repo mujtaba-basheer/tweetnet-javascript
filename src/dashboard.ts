@@ -771,13 +771,13 @@ window.addEventListener("load", async () => {
                     for (const tweet of tweetsToLike) {
                       if (inputEl.checked) {
                         try {
+                          likeButtonContainer.remove();
                           const resp =
                               await apiCall.getReq<ActionResponse>(
                                   `/user/like/${tweet.id}`
                               );
                           if (resp.limit_exceeded)
                             handleResponse("like", true);
-                          likeButtonContainer.remove();
                         } catch (error) {
                           console.error(error);
                         }
