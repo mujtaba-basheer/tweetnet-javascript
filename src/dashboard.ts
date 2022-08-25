@@ -741,7 +741,7 @@ window.addEventListener("load", async () => {
             const container = likeOverAll.querySelectorAll(".container");
             const likeButtonContainer = document.createElement("div");
             likeButtonContainer.className = "like-button-container";
-            likeButtonContainer.style.margin = "0 25px";
+            likeButtonContainer.style.margin = "0 15px";
             container[0].appendChild(likeButtonContainer);
             const likeContainer = document.createElement("div");
             likeContainer.classList.add("column");
@@ -749,7 +749,7 @@ window.addEventListener("load", async () => {
               const likeLabel = document.createElement("label");
               likeLabel.classList.add("w-checkbox");
               likeLabel.classList.add("like-checkbox");
-              likeLabel.style.paddingBottom = "35px";
+              likeLabel.style.paddingBottom = "40px";
               {
                 const iconDiv = document.createElement("div");
                 iconDiv.classList.add("w-checkbox-input");
