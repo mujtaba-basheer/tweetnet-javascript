@@ -569,6 +569,73 @@ window.addEventListener("load", async () => {
                     const { tweets: tweetsToLike, limit_exceeded: limit_exceeded_like } = await apiCall.getReq("/user/tweets/like");
                     const likeLoader = $(document.getElementById("like-preloader"));
                     const containerElLike = document.getElementById("like-swiper");
+
+                    // added like button
+                    const createLikeButton = () => {
+                        const likeOverAll = document.getElementById("like-overall");
+                        const container = likeOverAll.querySelectorAll(".container");
+                        const likeButtonContainer = document.createElement("div");
+                        likeButtonContainer.className = "like-button-container";
+                        likeButtonContainer.style.margin = "0 15px";
+                        container[0].appendChild(likeButtonContainer);
+                        const likeContainer = document.createElement("div");
+                        likeContainer.classList.add("column");
+                        {
+                            const likeLabel = document.createElement("label");
+                            likeLabel.classList.add("w-checkbox");
+                            likeLabel.classList.add("like-checkbox");
+                            likeLabel.style.paddingBottom = "40px";
+                            {
+                                const iconDiv = document.createElement("div");
+                                iconDiv.classList.add("w-checkbox-input");
+                                iconDiv.classList.add("w-checkbox-input--inputType-custom");
+                                iconDiv.classList.add("like-checkbox-check");
+                                Object.assign(iconDiv.style, { width: "25px", height: "25px" });
+                                const inputEl = document.createElement("input");
+                                inputEl.id = "Loike-Checkbox-2";
+                                inputEl.type = "checkbox";
+                                inputEl.setAttribute("data-name", "Loike Checkbox 2");
+                                inputEl.style.position = "absolute";
+                                inputEl.style.opacity = "0";
+                                inputEl.style.zIndex = "-1";
+                                {
+                                    inputEl.addEventListener("change", async () => {
+                                        for (const tweet of tweetsToLike) {
+                                            if (inputEl.checked) {
+                                                try {
+                                                    likeButtonContainer.remove();
+                                                    const resp = await apiCall.getReq(`/user/like/${tweet.id}`);
+                                                    if (resp.limit_exceeded)
+                                                        handleResponse("like", true);
+                                                }
+                                                catch (error) {
+                                                    console.error(error);
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                                const spanEl = document.createElement("span");
+                                spanEl.classList.add("w-form-label");
+                                spanEl.classList.add("checkbox-label-card");
+                                spanEl.setAttribute("for", "Loike-Checkbox-2");
+                                spanEl.textContent = "Like";
+                                likeLabel.appendChild(iconDiv);
+                                likeLabel.appendChild(inputEl);
+                            }
+                            const likeError = document.createElement("div");
+                            likeError.classList.add("error-like");
+                            likeError.classList.add("hide");
+                            likeError.textContent =
+                                "You've exceeded amount of tweets to be liked";
+                            likeContainer.appendChild(likeLabel);
+                            likeContainer.appendChild(likeError);
+                        }
+                        likeButtonContainer.appendChild(likeContainer);
+                    };
+                    createLikeButton();
+                    // added like button
+
                     if (limit_exceeded_like)
                         handleResponse("like", true);
                     containerElLike
